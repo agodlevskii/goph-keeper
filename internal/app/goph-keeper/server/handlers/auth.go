@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services"
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
 	"net/http"
 )
 
@@ -27,7 +26,7 @@ func Auth(next http.Handler) http.Handler {
 	})
 }
 
-func Login(db storage.IStorage) http.HandlerFunc {
+func (h Handler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cid := getClientID(r)
 
@@ -37,7 +36,7 @@ func Login(db storage.IStorage) http.HandlerFunc {
 			return
 		}
 
-		token, cid, err := services.Login(db, cid, req)
+		token, cid, err := services.Login(h.db, cid, req)
 		if err != nil {
 			if err.Error() == "invalid username or password" {
 				handleHTTPError(w, err, http.StatusUnauthorized)
@@ -57,7 +56,7 @@ func Login(db storage.IStorage) http.HandlerFunc {
 	}
 }
 
-func Register(db storage.IStorage) http.HandlerFunc {
+func (h Handler) Register() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var u services.AuthReq
 		if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
@@ -65,7 +64,7 @@ func Register(db storage.IStorage) http.HandlerFunc {
 			return
 		}
 
-		if err := services.Register(db, u); err != nil {
+		if err := services.Register(h.db, u); err != nil {
 			if err.Error() == "user with the specified name already exists" {
 				handleHTTPError(w, err, http.StatusConflict)
 			} else {

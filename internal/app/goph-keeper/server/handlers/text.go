@@ -3,16 +3,15 @@ package handlers
 import (
 	"encoding/json"
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services"
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 )
 
-func GetAllTexts(db storage.IStorage) http.HandlerFunc {
+func (h Handler) GetAllTexts() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		uid := r.Context().Value("uid").(string)
-		ts, err := services.GetAllTexts(db, uid)
+		ts, err := services.GetAllTexts(h.db, uid)
 		if err != nil {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return
@@ -24,12 +23,12 @@ func GetAllTexts(db storage.IStorage) http.HandlerFunc {
 	}
 }
 
-func GetTextByID(db storage.IStorage) http.HandlerFunc {
+func (h Handler) GetTextByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		uid := r.Context().Value("uid").(string)
 		id := chi.URLParam(r, "id")
 
-		t, err := services.GetTextByID(db, uid, id)
+		t, err := services.GetTextByID(h.db, uid, id)
 		if err != nil && err.Error() != "stored text not found" {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return
@@ -47,7 +46,7 @@ func GetTextByID(db storage.IStorage) http.HandlerFunc {
 	}
 }
 
-func StoreText(db storage.IStorage) http.HandlerFunc {
+func (h Handler) StoreText() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		uid := r.Context().Value("uid").(string)
 
@@ -57,7 +56,7 @@ func StoreText(db storage.IStorage) http.HandlerFunc {
 			return
 		}
 
-		id, err := services.StoreText(db, uid, req)
+		id, err := services.StoreText(h.db, uid, req)
 		if err != nil {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return

@@ -8,7 +8,7 @@ import (
 	"github.com/agodlevskii/goph-keeper/internal/pkg/enc"
 )
 
-func StoreSecureDataFromPayload(db storage.IDataStorage, uid string, payload any, t storage.Type) (string, error) {
+func StoreSecureDataFromPayload(db storage.IDataRepository, uid string, payload any, t storage.Type) (string, error) {
 	data, err := json.Marshal(payload)
 	if err != nil {
 		return "", err

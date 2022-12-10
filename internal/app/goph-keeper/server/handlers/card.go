@@ -4,16 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services"
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 )
 
-func GetAllCards(db storage.IStorage) http.HandlerFunc {
+func (h Handler) GetAllCards() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		uid := r.Context().Value("uid").(string)
-		cs, err := services.GetAllCards(db, uid)
+		cs, err := services.GetAllCards(h.db, uid)
 		if err != nil {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return
@@ -25,12 +24,12 @@ func GetAllCards(db storage.IStorage) http.HandlerFunc {
 	}
 }
 
-func GetCardByID(db storage.IStorage) http.HandlerFunc {
+func (h Handler) GetCardByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		uid := r.Context().Value("uid").(string)
 		id := chi.URLParam(r, "id")
 
-		c, err := services.GetCardByID(db, uid, id)
+		c, err := services.GetCardByID(h.db, uid, id)
 		if err != nil && err.Error() != "stored card not found" {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return
@@ -48,7 +47,7 @@ func GetCardByID(db storage.IStorage) http.HandlerFunc {
 	}
 }
 
-func StoreCard(db storage.IStorage) http.HandlerFunc {
+func (h Handler) StoreCard() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		uid := r.Context().Value("uid").(string)
 
@@ -58,7 +57,7 @@ func StoreCard(db storage.IStorage) http.HandlerFunc {
 			return
 		}
 
-		id, err := services.StoreCard(db, uid, req)
+		id, err := services.StoreCard(h.db, uid, req)
 		if err != nil {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return

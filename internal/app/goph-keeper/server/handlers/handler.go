@@ -9,39 +9,44 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func NewHandler(db storage.IStorage) *chi.Mux {
+type Handler struct {
+	db storage.IRepository
+}
+
+func NewHandler(db storage.IRepository) *chi.Mux {
+	h := Handler{db: db}
 	r := chi.NewRouter()
 	r.Use(middleware.Logger, middleware.Compress(5, "/*"))
 
 	r.Route("/api/v1/", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
-			r.Post("/login", Login(db))
-			r.Post("/register", Register(db))
+			r.Post("/login", h.Login())
+			r.Post("/register", h.Register())
 		})
 
 		r.With(Auth).Route("/storage", func(r chi.Router) {
 			r.Route("/binary", func(r chi.Router) {
-				r.Get("/", GetAllBinaries(db))
-				r.Get("/{id}", GetBinaryByID(db))
-				r.Post("/", StoreBinary(db))
+				r.Get("/", h.GetAllBinaries())
+				r.Get("/{id}", h.GetBinaryByID())
+				r.Post("/", h.StoreBinary())
 			})
 
 			r.Route("/card", func(r chi.Router) {
-				r.Get("/", GetAllCards(db))
-				r.Get("/{id}", GetCardByID(db))
-				r.Post("/", StoreCard(db))
+				r.Get("/", h.GetAllCards())
+				r.Get("/{id}", h.GetCardByID())
+				r.Post("/", h.StoreCard())
 			})
 
 			r.Route("/password", func(r chi.Router) {
-				r.Get("/", GetAllPasswords(db))
-				r.Get("/{id}", GetPasswordByID(db))
-				r.Post("/", StorePassword(db))
+				r.Get("/", h.GetAllPasswords())
+				r.Get("/{id}", h.GetPasswordByID())
+				r.Post("/", h.StorePassword())
 			})
 
 			r.Route("/text", func(r chi.Router) {
-				r.Get("/", GetAllTexts(db))
-				r.Get("/{id}", GetTextByID(db))
-				r.Post("/", StoreText(db))
+				r.Get("/", h.GetAllTexts())
+				r.Get("/{id}", h.GetTextByID())
+				r.Post("/", h.StoreText())
 			})
 		})
 	})

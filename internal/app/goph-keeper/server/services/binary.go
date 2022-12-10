@@ -18,7 +18,7 @@ type BinaryRes struct {
 	Note string `json:"note"`
 }
 
-func GetAllBinaries(db storage.IDataStorage, uid string) ([]BinaryRes, error) {
+func GetAllBinaries(db storage.IDataRepository, uid string) ([]BinaryRes, error) {
 	sd, err := db.GetAllDataByType(uid, storage.SBinary)
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func GetAllBinaries(db storage.IDataStorage, uid string) ([]BinaryRes, error) {
 	return binaries, nil
 }
 
-func GetBinaryByID(db storage.IDataStorage, uid, id string) (BinaryRes, error) {
+func GetBinaryByID(db storage.IDataRepository, uid, id string) (BinaryRes, error) {
 	d, err := db.GetDataByID(uid, id)
 	if err != nil {
 		return BinaryRes{}, err
@@ -44,7 +44,7 @@ func GetBinaryByID(db storage.IDataStorage, uid, id string) (BinaryRes, error) {
 	return getBinaryFromSecureData(d)
 }
 
-func StoreBinary(db storage.IDataStorage, uid string, req BinaryReq) (string, error) {
+func StoreBinary(db storage.IDataRepository, uid string, req BinaryReq) (string, error) {
 	bin := getBinaryFromRequest(uid, req)
 	return StoreSecureDataFromPayload(db, uid, bin, storage.SBinary)
 }

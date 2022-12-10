@@ -24,7 +24,7 @@ type CardRes struct {
 	Note    string `json:"note"`
 }
 
-func GetAllCards(db storage.IDataStorage, uid string) ([]CardRes, error) {
+func GetAllCards(db storage.IDataRepository, uid string) ([]CardRes, error) {
 	sd, err := db.GetAllDataByType(uid, storage.SCard)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func GetAllCards(db storage.IDataStorage, uid string) ([]CardRes, error) {
 	return cards, nil
 }
 
-func GetCardByID(db storage.IDataStorage, uid, id string) (CardRes, error) {
+func GetCardByID(db storage.IDataRepository, uid, id string) (CardRes, error) {
 	d, err := db.GetDataByID(uid, id)
 	if err != nil {
 		return CardRes{}, nil
@@ -51,7 +51,7 @@ func GetCardByID(db storage.IDataStorage, uid, id string) (CardRes, error) {
 	return getCardFromSecureData(d)
 }
 
-func StoreCard(db storage.IDataStorage, uid string, req CardReq) (string, error) {
+func StoreCard(db storage.IDataRepository, uid string, req CardReq) (string, error) {
 	card := getCardFromRequest(uid, req)
 	return StoreSecureDataFromPayload(db, uid, card, storage.SCard)
 }

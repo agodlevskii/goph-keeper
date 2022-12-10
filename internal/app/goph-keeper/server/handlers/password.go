@@ -3,17 +3,15 @@ package handlers
 import (
 	"encoding/json"
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services"
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
-
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 )
 
-func GetAllPasswords(db storage.IStorage) http.HandlerFunc {
+func (h Handler) GetAllPasswords() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		uid := r.Context().Value("uid").(string)
-		ps, err := services.GetAllPasswords(db, uid)
+		ps, err := services.GetAllPasswords(h.db, uid)
 		if err != nil {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return
@@ -25,12 +23,12 @@ func GetAllPasswords(db storage.IStorage) http.HandlerFunc {
 	}
 }
 
-func GetPasswordByID(db storage.IStorage) http.HandlerFunc {
+func (h Handler) GetPasswordByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		uid := r.Context().Value("uid").(string)
 		id := chi.URLParam(r, "id")
 
-		p, err := services.GetPasswordByID(db, uid, id)
+		p, err := services.GetPasswordByID(h.db, uid, id)
 		if err != nil && err.Error() != "stored password not found" {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return
@@ -48,7 +46,7 @@ func GetPasswordByID(db storage.IStorage) http.HandlerFunc {
 	}
 }
 
-func StorePassword(db storage.IStorage) http.HandlerFunc {
+func (h Handler) StorePassword() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		uid := r.Context().Value("uid").(string)
 
@@ -58,7 +56,7 @@ func StorePassword(db storage.IStorage) http.HandlerFunc {
 			return
 		}
 
-		id, err := services.StorePassword(db, uid, req)
+		id, err := services.StorePassword(h.db, uid, req)
 		if err != nil {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return

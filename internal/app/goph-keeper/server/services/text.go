@@ -18,7 +18,7 @@ type TextRes struct {
 	Note string `json:"note"`
 }
 
-func GetAllTexts(db storage.IDataStorage, uid string) ([]TextRes, error) {
+func GetAllTexts(db storage.IDataRepository, uid string) ([]TextRes, error) {
 	sd, err := db.GetAllDataByType(uid, storage.SText)
 	if err != nil {
 		return nil, err
@@ -37,7 +37,7 @@ func GetAllTexts(db storage.IDataStorage, uid string) ([]TextRes, error) {
 	return texts, nil
 }
 
-func GetTextByID(db storage.IDataStorage, uid, id string) (TextRes, error) {
+func GetTextByID(db storage.IDataRepository, uid, id string) (TextRes, error) {
 	sd, err := db.GetDataByID(uid, id)
 	if err != nil {
 		return TextRes{}, err
@@ -45,7 +45,7 @@ func GetTextByID(db storage.IDataStorage, uid, id string) (TextRes, error) {
 	return getTextFromSecureData(sd)
 }
 
-func StoreText(db storage.IDataStorage, uid string, req TextReq) (string, error) {
+func StoreText(db storage.IDataRepository, uid string, req TextReq) (string, error) {
 	text := getTextFromRequest(uid, req)
 	return StoreSecureDataFromPayload(db, uid, text, storage.SPassword)
 }

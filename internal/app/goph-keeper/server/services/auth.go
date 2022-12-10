@@ -26,7 +26,7 @@ func Authorize(token string) (string, error) {
 	return jwt.GetUserIDFromToken(token)
 }
 
-func Login(db storage.IStorage, cid string, u AuthReq) (string, string, error) {
+func Login(db storage.IRepository, cid string, u AuthReq) (string, string, error) {
 	if cid != "" {
 		t, err := RestoreSession(db, cid)
 		if err == nil {
@@ -62,7 +62,7 @@ func Login(db storage.IStorage, cid string, u AuthReq) (string, string, error) {
 	return token, cid, nil
 }
 
-func Register(db storage.IStorage, u AuthReq) error {
+func Register(db storage.IRepository, u AuthReq) error {
 	su, err := db.GetUserByName(u.Name)
 	if err != nil && err.Error() != "user not found" {
 		return err
@@ -84,7 +84,7 @@ func Register(db storage.IStorage, u AuthReq) error {
 	return nil
 }
 
-func RestoreSession(db storage.IStorage, cid string) (string, error) {
+func RestoreSession(db storage.IRepository, cid string) (string, error) {
 	t, err := db.GetSession(cid)
 	if err != nil {
 		return "", err

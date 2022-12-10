@@ -9,26 +9,26 @@ const (
 	SText
 )
 
-type IStorage interface {
-	IDataStorage
-	ISessionStorage
-	IUserStorage
+type IRepository interface {
+	IDataRepository
+	ISessionRepository
+	IUserRepository
 }
 
-type IDataStorage interface {
+type IDataRepository interface {
 	GetAllData(uid string) ([]SecureData, error)
 	GetAllDataByType(uid string, t Type) ([]SecureData, error)
 	GetDataByID(uid, id string) (SecureData, error)
 	StoreData(data SecureData) (string, error)
 }
 
-type ISessionStorage interface {
+type ISessionRepository interface {
 	DeleteSession(cid string) error
 	GetSession(cid string) (string, error)
 	StoreSession(cid, token string) error
 }
 
-type IUserStorage interface {
+type IUserRepository interface {
 	AddUser(name, pwd string) (User, error)
 	GetUserByID(string) (User, error)
 	GetUserByName(string) (User, error)
@@ -47,6 +47,6 @@ type User struct {
 	Password string `json:"password"`
 }
 
-func NewStorage() IStorage {
+func NewStorage() IRepository {
 	return NewBasicStorage()
 }
