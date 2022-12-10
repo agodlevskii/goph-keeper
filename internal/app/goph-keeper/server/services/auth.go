@@ -2,9 +2,6 @@ package services
 
 import (
 	"errors"
-
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
-	"github.com/agodlevskii/goph-keeper/internal/pkg/jwt"
 )
 
 type AuthReq struct {
@@ -12,20 +9,28 @@ type AuthReq struct {
 	Password string `json:"password"`
 }
 
-func Authorize(token string) (string, error) {
-	if exp, err := jwt.IsTokenExpired(token); err != nil || exp {
-		if err != nil {
-			return "", err
-		}
-		return "", errors.New("token is expired")
-	}
-
-	return jwt.GetUserIDFromToken(token)
+type AuthService struct {
+	ss SessionService
+	us UserService
 }
 
-func Login(db storage.IRepository, cid string, u AuthReq) (string, string, error) {
+func NewAuthService(ss SessionService, us UserService) AuthService {
+	return AuthService{
+		ss: ss,
+		us: us,
+	}
+}
+
+func (s AuthService) Authorize(token string) (string, error) {
+	if exp, err := s.ss.IsTokenExpired(token); err != nil || exp {
+		return "", err
+	}
+	return s.ss.GetUidFromToken(token)
+}
+
+func (s AuthService) Login(cid string, u AuthReq) (string, string, error) {
 	if cid != "" {
-		t, err := RestoreSession(db, cid)
+		t, err := s.ss.RestoreSession(cid)
 		if err == nil {
 			return t, cid, nil
 		}
@@ -34,7 +39,7 @@ func Login(db storage.IRepository, cid string, u AuthReq) (string, string, error
 		}
 	}
 
-	su, err := GetUser(db, u)
+	su, err := s.us.GetUser(u)
 	if err != nil {
 		if err.Error() == "user not found" {
 			return "", "", errors.New("invalid username or password")
@@ -42,18 +47,25 @@ func Login(db storage.IRepository, cid string, u AuthReq) (string, string, error
 		return "", "", err
 	}
 
-	token, err := GenerateToken(su.ID)
+	token, err := s.ss.GenerateToken(su.ID)
 	if err != nil {
 		return "", "", err
 	}
 
-	cid, err = StoreSession(db, token)
+	cid, err = s.ss.StoreSession(token)
 	if err != nil {
 		return "", "", err
 	}
 	return token, cid, nil
 }
 
-func Register(db storage.IRepository, u AuthReq) error {
-	return AddUser(db, u)
+func (s AuthService) Logout(cid string) (bool, error) {
+	if err := s.ss.DeleteSession(cid); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (s AuthService) Register(u AuthReq) error {
+	return s.us.AddUser(u)
 }

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services"
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
 	"net/http"
 
@@ -11,20 +12,22 @@ import (
 
 type Handler struct {
 	db storage.IRepository
+	as services.AuthService
 }
 
 func NewHandler(db storage.IRepository) *chi.Mux {
-	h := Handler{db: db}
+	h := initHandler(db)
 	r := chi.NewRouter()
 	r.Use(middleware.Logger, middleware.Compress(5, "/*"))
 
 	r.Route("/api/v1/", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/login", h.Login())
+			r.Post("/logout", h.Logout())
 			r.Post("/register", h.Register())
 		})
 
-		r.With(Auth).Route("/storage", func(r chi.Router) {
+		r.With(h.Auth).Route("/storage", func(r chi.Router) {
 			r.Route("/binary", func(r chi.Router) {
 				r.Get("/", h.GetAllBinaries())
 				r.Get("/{id}", h.GetBinaryByID())
@@ -52,6 +55,15 @@ func NewHandler(db storage.IRepository) *chi.Mux {
 	})
 
 	return r
+}
+
+func initHandler(db storage.IRepository) Handler {
+	us := services.NewUserService(db)
+	ss := services.NewSessionService(db)
+	return Handler{
+		db: db,
+		as: services.NewAuthService(ss, us),
+	}
 }
 
 func handleHTTPError(w http.ResponseWriter, err error, code int) {

@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func Auth(next http.Handler) http.Handler {
+func (h Handler) Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("uid")
 		if err != nil {
@@ -15,7 +15,7 @@ func Auth(next http.Handler) http.Handler {
 			return
 		}
 
-		uid, err := services.Authorize(cookie.Value)
+		uid, err := h.as.Authorize(cookie.Value)
 		if err != nil {
 			handleHTTPError(w, err, http.StatusUnauthorized)
 			return
@@ -36,7 +36,7 @@ func (h Handler) Login() http.HandlerFunc {
 			return
 		}
 
-		token, cid, err := services.Login(h.db, cid, req)
+		token, cid, err := h.as.Login(cid, req)
 		if err != nil {
 			if err.Error() == "invalid username or password" {
 				handleHTTPError(w, err, http.StatusUnauthorized)
@@ -56,6 +56,19 @@ func (h Handler) Login() http.HandlerFunc {
 	}
 }
 
+func (h Handler) Logout() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cid := getClientID(r)
+		if loggedOut, err := h.as.Logout(cid); !loggedOut || err != nil {
+			handleHTTPError(w, err, http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(""))
+	}
+}
+
 func (h Handler) Register() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var u services.AuthReq
@@ -64,7 +77,7 @@ func (h Handler) Register() http.HandlerFunc {
 			return
 		}
 
-		if err := services.Register(h.db, u); err != nil {
+		if err := h.as.Register(u); err != nil {
 			if err.Error() == "user with the specified name already exists" {
 				handleHTTPError(w, err, http.StatusConflict)
 			} else {

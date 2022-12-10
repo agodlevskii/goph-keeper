@@ -6,9 +6,17 @@ import (
 	"github.com/agodlevskii/goph-keeper/internal/pkg/enc"
 )
 
-func AddUser(db storage.IUserRepository, req AuthReq) error {
+type UserService struct {
+	db storage.IUserRepository
+}
+
+func NewUserService(db storage.IUserRepository) UserService {
+	return UserService{db: db}
+}
+
+func (s UserService) AddUser(req AuthReq) error {
 	user := getUserFromRequest(req)
-	userExist, err := doesUserExist(db, user)
+	userExist, err := doesUserExist(s.db, user)
 	if err != nil {
 		return err
 	}
@@ -21,17 +29,17 @@ func AddUser(db storage.IUserRepository, req AuthReq) error {
 		return nil
 	}
 
-	_, err = db.AddUser(user.Name, hash)
+	_, err = s.db.AddUser(user.Name, hash)
 	return err
 }
 
-func GetUser(db storage.IUserRepository, u AuthReq) (storage.User, error) {
-	su, err := db.GetUserByName(u.Name)
+func (s UserService) GetUser(user AuthReq) (storage.User, error) {
+	su, err := s.db.GetUserByName(user.Name)
 	if err != nil {
 		return storage.User{}, err
 	}
 
-	if !enc.VerifyPassword(u.Password, su.Password) {
+	if !enc.VerifyPassword(user.Password, su.Password) {
 		return storage.User{}, errors.New("user not found")
 	}
 	return su, nil
