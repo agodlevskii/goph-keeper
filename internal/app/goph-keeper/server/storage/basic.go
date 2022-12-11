@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"errors"
 	"sync"
 
@@ -25,45 +26,41 @@ func NewBasicStorage() *BasicRepo {
 	}
 }
 
-func (s *BasicRepo) DeleteSession(cid string) error {
-	s.tokens.Delete(cid)
+func (r *BasicRepo) DeleteSession(_ context.Context, cid string) error {
+	r.tokens.Delete(cid)
 	return nil
 }
 
-func (s *BasicRepo) GetSession(cid string) (string, error) {
-	if t, ok := s.tokens.Load(cid); ok {
+func (r *BasicRepo) GetSession(_ context.Context, cid string) (string, error) {
+	if t, ok := r.tokens.Load(cid); ok {
 		return t.(string), nil
 	}
 	return "", errors.New("token not found")
 }
 
-func (s *BasicRepo) StoreSession(cid, token string) error {
-	s.tokens.Store(cid, token)
+func (r *BasicRepo) StoreSession(_ context.Context, cid, token string) error {
+	r.tokens.Store(cid, token)
 	return nil
 }
 
-func (s *BasicRepo) AddUser(name, pwd string) (User, error) {
+func (r *BasicRepo) AddUser(_ context.Context, u User) (User, error) {
 	id := uuid.NewString()
-	u := User{
-		ID:       id,
-		Name:     name,
-		Password: pwd,
-	}
-	s.users.Store(id, u)
+	u.ID = id
+	r.users.Store(id, u)
 	return u, nil
 }
 
-func (s *BasicRepo) GetUserByID(uid string) (User, error) {
-	if u, ok := s.users.Load(uid); ok {
+func (r *BasicRepo) GetUserByID(_ context.Context, uid string) (User, error) {
+	if u, ok := r.users.Load(uid); ok {
 		return u.(User), nil
 	}
 	return User{}, errors.New("user not found")
 }
 
-func (s *BasicRepo) GetUserByName(name string) (User, error) {
+func (r *BasicRepo) GetUserByName(_ context.Context, name string) (User, error) {
 	var user User
 
-	s.users.Range(func(_, v any) bool {
+	r.users.Range(func(_, v any) bool {
 		u := v.(User)
 		if u.Name == name {
 			user = u
@@ -78,22 +75,9 @@ func (s *BasicRepo) GetUserByName(name string) (User, error) {
 	return user, nil
 }
 
-func (s *BasicRepo) GetAllData(uid string) ([]SecureData, error) {
+func (r *BasicRepo) GetAllDataByType(_ context.Context, uid string, t Type) ([]SecureData, error) {
 	var data []SecureData
-	if us, ok := s.data.Load(uid); ok {
-		us.(DataStorage).user.Range(func(_, v any) bool {
-			d := v.(SecureData)
-			data = append(data, d)
-			return true
-		})
-	}
-
-	return data, nil
-}
-
-func (s *BasicRepo) GetAllDataByType(uid string, t Type) ([]SecureData, error) {
-	var data []SecureData
-	if us, ok := s.data.Load(uid); ok {
+	if us, ok := r.data.Load(uid); ok {
 		us.(DataStorage).user.Range(func(_, v any) bool {
 			d := v.(SecureData)
 			if d.Type == t {
@@ -106,14 +90,14 @@ func (s *BasicRepo) GetAllDataByType(uid string, t Type) ([]SecureData, error) {
 	return data, nil
 }
 
-func (s *BasicRepo) GetDataByID(uid, id string) (SecureData, error) {
+func (r *BasicRepo) GetDataByID(_ context.Context, uid, id string) (SecureData, error) {
 	var (
 		us any
 		d  any
 		ok bool
 	)
 
-	if us, ok = s.data.Load(uid); ok {
+	if us, ok = r.data.Load(uid); ok {
 		if d, ok = us.(DataStorage).user.Load(id); ok {
 			data := d.(SecureData)
 			return data, nil
@@ -122,14 +106,14 @@ func (s *BasicRepo) GetDataByID(uid, id string) (SecureData, error) {
 	return SecureData{}, errors.New("data not found")
 }
 
-func (s *BasicRepo) StoreData(data SecureData) (string, error) {
+func (r *BasicRepo) StoreData(_ context.Context, data SecureData) (string, error) {
 	id := uuid.NewString()
 	data.ID = id
 
-	if us, ok := s.data.Load(data.UID); !ok {
+	if us, ok := r.data.Load(data.UID); !ok {
 		sd := &sync.Map{}
 		sd.Store(id, data)
-		s.data.Store(data.UID, DataStorage{user: sd})
+		r.data.Store(data.UID, DataStorage{user: sd})
 	} else {
 		us.(DataStorage).user.Store(id, data)
 	}

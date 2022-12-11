@@ -1,6 +1,8 @@
 package services
 
 import (
+	"context"
+
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
 )
 
@@ -18,8 +20,8 @@ type TextRes struct {
 	Note string `json:"note"`
 }
 
-func GetAllTexts(db storage.IDataRepo, uid string) ([]TextRes, error) {
-	sd, err := db.GetAllDataByType(uid, storage.SText)
+func GetAllTexts(ctx context.Context, db storage.IDataRepo, uid string) ([]TextRes, error) {
+	sd, err := db.GetAllDataByType(ctx, uid, storage.SText)
 	if err != nil {
 		return nil, err
 	}
@@ -37,17 +39,17 @@ func GetAllTexts(db storage.IDataRepo, uid string) ([]TextRes, error) {
 	return texts, nil
 }
 
-func GetTextByID(db storage.IDataRepo, uid, id string) (TextRes, error) {
-	sd, err := db.GetDataByID(uid, id)
+func GetTextByID(ctx context.Context, db storage.IDataRepo, uid, id string) (TextRes, error) {
+	sd, err := db.GetDataByID(ctx, uid, id)
 	if err != nil {
 		return TextRes{}, err
 	}
 	return getTextFromSecureData(sd)
 }
 
-func StoreText(db storage.IDataRepo, uid string, req TextReq) (string, error) {
+func StoreText(ctx context.Context, db storage.IDataRepo, uid string, req TextReq) (string, error) {
 	text := getTextFromRequest(uid, req)
-	return StoreSecureDataFromPayload(db, uid, text, storage.SPassword)
+	return StoreSecureDataFromPayload(ctx, db, uid, text, storage.SPassword)
 }
 
 func getTextFromSecureData(d storage.SecureData) (TextRes, error) {

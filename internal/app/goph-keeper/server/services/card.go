@@ -1,6 +1,8 @@
 package services
 
 import (
+	"context"
+
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
 )
 
@@ -24,8 +26,8 @@ type CardRes struct {
 	Note    string `json:"note"`
 }
 
-func GetAllCards(db storage.IDataRepo, uid string) ([]CardRes, error) {
-	sd, err := db.GetAllDataByType(uid, storage.SCard)
+func GetAllCards(ctx context.Context, db storage.IDataRepo, uid string) ([]CardRes, error) {
+	sd, err := db.GetAllDataByType(ctx, uid, storage.SCard)
 	if err != nil {
 		return nil, err
 	}
@@ -43,17 +45,17 @@ func GetAllCards(db storage.IDataRepo, uid string) ([]CardRes, error) {
 	return cards, nil
 }
 
-func GetCardByID(db storage.IDataRepo, uid, id string) (CardRes, error) {
-	d, err := db.GetDataByID(uid, id)
+func GetCardByID(ctx context.Context, db storage.IDataRepo, uid, id string) (CardRes, error) {
+	d, err := db.GetDataByID(ctx, uid, id)
 	if err != nil {
 		return CardRes{}, nil
 	}
 	return getCardFromSecureData(d)
 }
 
-func StoreCard(db storage.IDataRepo, uid string, req CardReq) (string, error) {
+func StoreCard(ctx context.Context, db storage.IDataRepo, uid string, req CardReq) (string, error) {
 	card := getCardFromRequest(uid, req)
-	return StoreSecureDataFromPayload(db, uid, card, storage.SCard)
+	return StoreSecureDataFromPayload(ctx, db, uid, card, storage.SCard)
 }
 
 func getCardFromSecureData(d storage.SecureData) (CardRes, error) {

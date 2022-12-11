@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 
@@ -8,7 +9,8 @@ import (
 	"github.com/agodlevskii/goph-keeper/internal/pkg/enc"
 )
 
-func StoreSecureDataFromPayload(db storage.IDataRepo, uid string, payload any, t storage.Type) (string, error) {
+func StoreSecureDataFromPayload(ctx context.Context, db storage.IDataRepo,
+	uid string, payload any, t storage.Type) (string, error) {
 	data, err := json.Marshal(payload)
 	if err != nil {
 		return "", err
@@ -24,7 +26,7 @@ func StoreSecureDataFromPayload(db storage.IDataRepo, uid string, payload any, t
 		Data: encData,
 		Type: t,
 	}
-	return db.StoreData(sd)
+	return db.StoreData(ctx, sd)
 }
 
 func GetDataFromBytes(b []byte, t storage.Type) (any, error) {

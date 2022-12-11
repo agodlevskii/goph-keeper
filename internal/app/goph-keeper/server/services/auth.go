@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"errors"
 )
 
@@ -28,9 +29,9 @@ func (s AuthService) Authorize(token string) (string, error) {
 	return s.session.GetUidFromToken(token)
 }
 
-func (s AuthService) Login(cid string, u AuthReq) (string, string, error) {
+func (s AuthService) Login(ctx context.Context, cid string, u AuthReq) (string, string, error) {
 	if cid != "" {
-		t, err := s.session.RestoreSession(cid)
+		t, err := s.session.RestoreSession(ctx, cid)
 		if err == nil {
 			return t, cid, nil
 		}
@@ -39,7 +40,7 @@ func (s AuthService) Login(cid string, u AuthReq) (string, string, error) {
 		}
 	}
 
-	su, err := s.user.GetUser(u)
+	su, err := s.user.GetUser(ctx, u)
 	if err != nil {
 		if err.Error() == "user not found" {
 			return "", "", errors.New("invalid username or password")
@@ -52,20 +53,20 @@ func (s AuthService) Login(cid string, u AuthReq) (string, string, error) {
 		return "", "", err
 	}
 
-	cid, err = s.session.StoreSession(token)
+	cid, err = s.session.StoreSession(ctx, token)
 	if err != nil {
 		return "", "", err
 	}
 	return token, cid, nil
 }
 
-func (s AuthService) Logout(cid string) (bool, error) {
-	if err := s.session.DeleteSession(cid); err != nil {
+func (s AuthService) Logout(ctx context.Context, cid string) (bool, error) {
+	if err := s.session.DeleteSession(ctx, cid); err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
-func (s AuthService) Register(u AuthReq) error {
-	return s.user.AddUser(u)
+func (s AuthService) Register(ctx context.Context, u AuthReq) error {
+	return s.user.AddUser(ctx, u)
 }

@@ -11,7 +11,7 @@ import (
 func (h Handler) GetAllBinaries() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		uid := r.Context().Value("uid").(string)
-		bs, err := services.GetAllBinaries(h.db, uid)
+		bs, err := services.GetAllBinaries(r.Context(), h.db, uid)
 		if err != nil {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return
@@ -28,7 +28,7 @@ func (h Handler) GetBinaryByID() http.HandlerFunc {
 		uid := r.Context().Value("uid").(string)
 		id := chi.URLParam(r, "id")
 
-		b, err := services.GetBinaryByID(h.db, uid, id)
+		b, err := services.GetBinaryByID(r.Context(), h.db, uid, id)
 		if err != nil && err.Error() != "stored binary not found" {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return
@@ -56,7 +56,7 @@ func (h Handler) StoreBinary() http.HandlerFunc {
 			return
 		}
 
-		id, err := services.StoreBinary(h.db, uid, req)
+		id, err := services.StoreBinary(r.Context(), h.db, uid, req)
 		if err != nil {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return

@@ -12,7 +12,7 @@ import (
 func (h Handler) GetAllCards() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		uid := r.Context().Value("uid").(string)
-		cs, err := services.GetAllCards(h.db, uid)
+		cs, err := services.GetAllCards(r.Context(), h.db, uid)
 		if err != nil {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return
@@ -29,7 +29,7 @@ func (h Handler) GetCardByID() http.HandlerFunc {
 		uid := r.Context().Value("uid").(string)
 		id := chi.URLParam(r, "id")
 
-		c, err := services.GetCardByID(h.db, uid, id)
+		c, err := services.GetCardByID(r.Context(), h.db, uid, id)
 		if err != nil && err.Error() != "stored card not found" {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return
@@ -57,7 +57,7 @@ func (h Handler) StoreCard() http.HandlerFunc {
 			return
 		}
 
-		id, err := services.StoreCard(h.db, uid, req)
+		id, err := services.StoreCard(r.Context(), h.db, uid, req)
 		if err != nil {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return

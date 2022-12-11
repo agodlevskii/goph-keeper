@@ -36,7 +36,7 @@ func (h Handler) Login() http.HandlerFunc {
 			return
 		}
 
-		token, cid, err := h.auth.Login(cid, req)
+		token, cid, err := h.auth.Login(r.Context(), cid, req)
 		if err != nil {
 			if err.Error() == "invalid username or password" {
 				handleHTTPError(w, err, http.StatusUnauthorized)
@@ -59,7 +59,7 @@ func (h Handler) Login() http.HandlerFunc {
 func (h Handler) Logout() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cid := getClientID(r)
-		if loggedOut, err := h.auth.Logout(cid); !loggedOut || err != nil {
+		if loggedOut, err := h.auth.Logout(r.Context(), cid); !loggedOut || err != nil {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return
 		}
@@ -77,7 +77,7 @@ func (h Handler) Register() http.HandlerFunc {
 			return
 		}
 
-		if err := h.auth.Register(u); err != nil {
+		if err := h.auth.Register(r.Context(), u); err != nil {
 			if err.Error() == "user with the specified name already exists" {
 				handleHTTPError(w, err, http.StatusConflict)
 			} else {

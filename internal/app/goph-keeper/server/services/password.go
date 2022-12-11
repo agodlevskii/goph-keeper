@@ -1,6 +1,8 @@
 package services
 
 import (
+	"context"
+
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
 )
 
@@ -20,8 +22,8 @@ type PasswordRes struct {
 	Note     string `json:"note"`
 }
 
-func GetAllPasswords(db storage.IDataRepo, uid string) ([]PasswordRes, error) {
-	encPass, err := db.GetAllDataByType(uid, storage.SPassword)
+func GetAllPasswords(ctx context.Context, db storage.IDataRepo, uid string) ([]PasswordRes, error) {
+	encPass, err := db.GetAllDataByType(ctx, uid, storage.SPassword)
 	if err != nil {
 		return nil, err
 	}
@@ -39,17 +41,17 @@ func GetAllPasswords(db storage.IDataRepo, uid string) ([]PasswordRes, error) {
 	return ps, nil
 }
 
-func GetPasswordByID(db storage.IDataRepo, uid, id string) (PasswordRes, error) {
-	ep, err := db.GetDataByID(uid, id)
+func GetPasswordByID(ctx context.Context, db storage.IDataRepo, uid, id string) (PasswordRes, error) {
+	ep, err := db.GetDataByID(ctx, uid, id)
 	if err != nil {
 		return PasswordRes{}, nil
 	}
 	return getPasswordFromSecureData(ep)
 }
 
-func StorePassword(db storage.IDataRepo, uid string, req PasswordReq) (string, error) {
+func StorePassword(ctx context.Context, db storage.IDataRepo, uid string, req PasswordReq) (string, error) {
 	pass := getPasswordFromRequest(uid, req)
-	return StoreSecureDataFromPayload(db, uid, pass, storage.SPassword)
+	return StoreSecureDataFromPayload(ctx, db, uid, pass, storage.SPassword)
 }
 
 func getPasswordFromSecureData(d storage.SecureData) (PasswordRes, error) {

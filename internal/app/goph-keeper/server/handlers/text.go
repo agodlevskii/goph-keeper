@@ -11,7 +11,7 @@ import (
 func (h Handler) GetAllTexts() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		uid := r.Context().Value("uid").(string)
-		ts, err := services.GetAllTexts(h.db, uid)
+		ts, err := services.GetAllTexts(r.Context(), h.db, uid)
 		if err != nil {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return
@@ -28,7 +28,7 @@ func (h Handler) GetTextByID() http.HandlerFunc {
 		uid := r.Context().Value("uid").(string)
 		id := chi.URLParam(r, "id")
 
-		t, err := services.GetTextByID(h.db, uid, id)
+		t, err := services.GetTextByID(r.Context(), h.db, uid, id)
 		if err != nil && err.Error() != "stored text not found" {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return
@@ -56,7 +56,7 @@ func (h Handler) StoreText() http.HandlerFunc {
 			return
 		}
 
-		id, err := services.StoreText(h.db, uid, req)
+		id, err := services.StoreText(r.Context(), h.db, uid, req)
 		if err != nil {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return
