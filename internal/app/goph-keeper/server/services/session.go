@@ -10,10 +10,10 @@ import (
 )
 
 type SessionService struct {
-	db storage.ISessionRepository
+	db storage.ISessionRepo
 }
 
-func NewSessionService(db storage.ISessionRepository) SessionService {
+func NewSessionService(db storage.ISessionRepo) SessionService {
 	return SessionService{db: db}
 }
 

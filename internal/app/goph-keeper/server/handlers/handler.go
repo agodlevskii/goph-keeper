@@ -11,11 +11,11 @@ import (
 )
 
 type Handler struct {
-	db storage.IRepository
-	as services.AuthService
+	db   storage.IRepo
+	auth services.AuthService
 }
 
-func NewHandler(db storage.IRepository) *chi.Mux {
+func NewHandler(db storage.IRepo) *chi.Mux {
 	h := initHandler(db)
 	r := chi.NewRouter()
 	r.Use(middleware.Logger, middleware.Compress(5, "/*"))
@@ -57,12 +57,12 @@ func NewHandler(db storage.IRepository) *chi.Mux {
 	return r
 }
 
-func initHandler(db storage.IRepository) Handler {
+func initHandler(db storage.IRepo) Handler {
 	us := services.NewUserService(db)
 	ss := services.NewSessionService(db)
 	return Handler{
-		db: db,
-		as: services.NewAuthService(ss, us),
+		db:   db,
+		auth: services.NewAuthService(ss, us),
 	}
 }
 

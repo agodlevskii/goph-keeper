@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type BasicStorage struct {
+type BasicRepo struct {
 	data   sync.Map
 	tokens sync.Map
 	users  sync.Map
@@ -17,32 +17,32 @@ type DataStorage struct {
 	user *sync.Map
 }
 
-func NewBasicStorage() *BasicStorage {
-	return &BasicStorage{
+func NewBasicStorage() *BasicRepo {
+	return &BasicRepo{
 		data:   sync.Map{},
 		tokens: sync.Map{},
 		users:  sync.Map{},
 	}
 }
 
-func (s *BasicStorage) DeleteSession(cid string) error {
+func (s *BasicRepo) DeleteSession(cid string) error {
 	s.tokens.Delete(cid)
 	return nil
 }
 
-func (s *BasicStorage) GetSession(cid string) (string, error) {
+func (s *BasicRepo) GetSession(cid string) (string, error) {
 	if t, ok := s.tokens.Load(cid); ok {
 		return t.(string), nil
 	}
 	return "", errors.New("token not found")
 }
 
-func (s *BasicStorage) StoreSession(cid, token string) error {
+func (s *BasicRepo) StoreSession(cid, token string) error {
 	s.tokens.Store(cid, token)
 	return nil
 }
 
-func (s *BasicStorage) AddUser(name, pwd string) (User, error) {
+func (s *BasicRepo) AddUser(name, pwd string) (User, error) {
 	id := uuid.NewString()
 	u := User{
 		ID:       id,
@@ -53,14 +53,14 @@ func (s *BasicStorage) AddUser(name, pwd string) (User, error) {
 	return u, nil
 }
 
-func (s *BasicStorage) GetUserByID(uid string) (User, error) {
+func (s *BasicRepo) GetUserByID(uid string) (User, error) {
 	if u, ok := s.users.Load(uid); ok {
 		return u.(User), nil
 	}
 	return User{}, errors.New("user not found")
 }
 
-func (s *BasicStorage) GetUserByName(name string) (User, error) {
+func (s *BasicRepo) GetUserByName(name string) (User, error) {
 	var user User
 
 	s.users.Range(func(_, v any) bool {
@@ -78,7 +78,7 @@ func (s *BasicStorage) GetUserByName(name string) (User, error) {
 	return user, nil
 }
 
-func (s *BasicStorage) GetAllData(uid string) ([]SecureData, error) {
+func (s *BasicRepo) GetAllData(uid string) ([]SecureData, error) {
 	var data []SecureData
 	if us, ok := s.data.Load(uid); ok {
 		us.(DataStorage).user.Range(func(_, v any) bool {
@@ -91,7 +91,7 @@ func (s *BasicStorage) GetAllData(uid string) ([]SecureData, error) {
 	return data, nil
 }
 
-func (s *BasicStorage) GetAllDataByType(uid string, t Type) ([]SecureData, error) {
+func (s *BasicRepo) GetAllDataByType(uid string, t Type) ([]SecureData, error) {
 	var data []SecureData
 	if us, ok := s.data.Load(uid); ok {
 		us.(DataStorage).user.Range(func(_, v any) bool {
@@ -106,7 +106,7 @@ func (s *BasicStorage) GetAllDataByType(uid string, t Type) ([]SecureData, error
 	return data, nil
 }
 
-func (s *BasicStorage) GetDataByID(uid, id string) (SecureData, error) {
+func (s *BasicRepo) GetDataByID(uid, id string) (SecureData, error) {
 	var (
 		us any
 		d  any
@@ -122,7 +122,7 @@ func (s *BasicStorage) GetDataByID(uid, id string) (SecureData, error) {
 	return SecureData{}, errors.New("data not found")
 }
 
-func (s *BasicStorage) StoreData(data SecureData) (string, error) {
+func (s *BasicRepo) StoreData(data SecureData) (string, error) {
 	id := uuid.NewString()
 	data.ID = id
 

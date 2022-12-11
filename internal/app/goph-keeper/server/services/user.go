@@ -7,10 +7,10 @@ import (
 )
 
 type UserService struct {
-	db storage.IUserRepository
+	db storage.IUserRepo
 }
 
-func NewUserService(db storage.IUserRepository) UserService {
+func NewUserService(db storage.IUserRepo) UserService {
 	return UserService{db: db}
 }
 
@@ -52,7 +52,7 @@ func getUserFromRequest(r AuthReq) storage.User {
 	}
 }
 
-func doesUserExist(db storage.IUserRepository, user storage.User) (bool, error) {
+func doesUserExist(db storage.IUserRepo, user storage.User) (bool, error) {
 	su, err := db.GetUserByName(user.Name)
 	if err != nil && err.Error() != "user not found" {
 		return false, err

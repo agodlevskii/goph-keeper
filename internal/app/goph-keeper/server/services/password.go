@@ -20,7 +20,7 @@ type PasswordRes struct {
 	Note     string `json:"note"`
 }
 
-func GetAllPasswords(db storage.IDataRepository, uid string) ([]PasswordRes, error) {
+func GetAllPasswords(db storage.IDataRepo, uid string) ([]PasswordRes, error) {
 	encPass, err := db.GetAllDataByType(uid, storage.SPassword)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func GetAllPasswords(db storage.IDataRepository, uid string) ([]PasswordRes, err
 	return ps, nil
 }
 
-func GetPasswordByID(db storage.IDataRepository, uid, id string) (PasswordRes, error) {
+func GetPasswordByID(db storage.IDataRepo, uid, id string) (PasswordRes, error) {
 	ep, err := db.GetDataByID(uid, id)
 	if err != nil {
 		return PasswordRes{}, nil
@@ -47,7 +47,7 @@ func GetPasswordByID(db storage.IDataRepository, uid, id string) (PasswordRes, e
 	return getPasswordFromSecureData(ep)
 }
 
-func StorePassword(db storage.IDataRepository, uid string, req PasswordReq) (string, error) {
+func StorePassword(db storage.IDataRepo, uid string, req PasswordReq) (string, error) {
 	pass := getPasswordFromRequest(uid, req)
 	return StoreSecureDataFromPayload(db, uid, pass, storage.SPassword)
 }

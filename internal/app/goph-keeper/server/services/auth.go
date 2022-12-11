@@ -10,27 +10,27 @@ type AuthReq struct {
 }
 
 type AuthService struct {
-	ss SessionService
-	us UserService
+	session SessionService
+	user    UserService
 }
 
 func NewAuthService(ss SessionService, us UserService) AuthService {
 	return AuthService{
-		ss: ss,
-		us: us,
+		session: ss,
+		user:    us,
 	}
 }
 
 func (s AuthService) Authorize(token string) (string, error) {
-	if exp, err := s.ss.IsTokenExpired(token); err != nil || exp {
+	if exp, err := s.session.IsTokenExpired(token); err != nil || exp {
 		return "", err
 	}
-	return s.ss.GetUidFromToken(token)
+	return s.session.GetUidFromToken(token)
 }
 
 func (s AuthService) Login(cid string, u AuthReq) (string, string, error) {
 	if cid != "" {
-		t, err := s.ss.RestoreSession(cid)
+		t, err := s.session.RestoreSession(cid)
 		if err == nil {
 			return t, cid, nil
 		}
@@ -39,7 +39,7 @@ func (s AuthService) Login(cid string, u AuthReq) (string, string, error) {
 		}
 	}
 
-	su, err := s.us.GetUser(u)
+	su, err := s.user.GetUser(u)
 	if err != nil {
 		if err.Error() == "user not found" {
 			return "", "", errors.New("invalid username or password")
@@ -47,12 +47,12 @@ func (s AuthService) Login(cid string, u AuthReq) (string, string, error) {
 		return "", "", err
 	}
 
-	token, err := s.ss.GenerateToken(su.ID)
+	token, err := s.session.GenerateToken(su.ID)
 	if err != nil {
 		return "", "", err
 	}
 
-	cid, err = s.ss.StoreSession(token)
+	cid, err = s.session.StoreSession(token)
 	if err != nil {
 		return "", "", err
 	}
@@ -60,12 +60,12 @@ func (s AuthService) Login(cid string, u AuthReq) (string, string, error) {
 }
 
 func (s AuthService) Logout(cid string) (bool, error) {
-	if err := s.ss.DeleteSession(cid); err != nil {
+	if err := s.session.DeleteSession(cid); err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
 func (s AuthService) Register(u AuthReq) error {
-	return s.us.AddUser(u)
+	return s.user.AddUser(u)
 }
