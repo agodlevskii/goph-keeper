@@ -1,6 +1,12 @@
 package storage
 
-import "context"
+import (
+	"context"
+	"errors"
+)
+
+var ErrNotFound = errors.New("data not found")
+var ErrDBMissingURL = errors.New("db url is missing")
 
 type Type int
 
@@ -18,6 +24,7 @@ type IRepo interface {
 }
 
 type IDataRepo interface {
+	DeleteData(ctx context.Context, uid, id string) error
 	GetAllDataByType(ctx context.Context, uid string, t Type) ([]SecureData, error)
 	GetDataByID(ctx context.Context, uid, id string) (SecureData, error)
 	StoreData(ctx context.Context, data SecureData) (string, error)
@@ -31,6 +38,7 @@ type ISessionRepo interface {
 
 type IUserRepo interface {
 	AddUser(ctx context.Context, user User) (User, error)
+	DeleteUser(ctx context.Context, uid string) error
 	GetUserByID(ctx context.Context, uid string) (User, error)
 	GetUserByName(ctx context.Context, name string) (User, error)
 }

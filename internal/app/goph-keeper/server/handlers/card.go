@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -30,13 +31,13 @@ func (h Handler) GetCardByID() http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 
 		c, err := services.GetCardByID(r.Context(), h.db, uid, id)
-		if err != nil && err.Error() != "stored card not found" {
+		if err != nil && errors.Is(err, storage.ErrNotFound) {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return
 		}
 
 		if c.ID == "" {
-			handleHTTPError(w, errors.New("data not found"), http.StatusNotFound)
+			handleHTTPError(w, storage.ErrNotFound, http.StatusNotFound)
 			return
 		}
 

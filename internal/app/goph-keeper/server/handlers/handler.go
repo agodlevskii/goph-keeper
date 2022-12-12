@@ -32,24 +32,28 @@ func NewHandler(db storage.IRepo) *chi.Mux {
 				r.Get("/", h.GetAllBinaries())
 				r.Get("/{id}", h.GetBinaryByID())
 				r.Post("/", h.StoreBinary())
+				r.Delete("/{id}", h.deleteData())
 			})
 
 			r.Route("/card", func(r chi.Router) {
 				r.Get("/", h.GetAllCards())
 				r.Get("/{id}", h.GetCardByID())
 				r.Post("/", h.StoreCard())
+				r.Delete("/{id}", h.deleteData())
 			})
 
 			r.Route("/password", func(r chi.Router) {
 				r.Get("/", h.GetAllPasswords())
 				r.Get("/{id}", h.GetPasswordByID())
 				r.Post("/", h.StorePassword())
+				r.Delete("/{id}", h.deleteData())
 			})
 
 			r.Route("/text", func(r chi.Router) {
 				r.Get("/", h.GetAllTexts())
 				r.Get("/{id}", h.GetTextByID())
 				r.Post("/", h.StoreText())
+				r.Delete("/{id}", h.deleteData())
 			})
 		})
 	})
@@ -63,6 +67,21 @@ func initHandler(db storage.IRepo) Handler {
 	return Handler{
 		db:   db,
 		auth: services.NewAuthService(ss, us),
+	}
+}
+
+func (h Handler) deleteData() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		uid := r.Context().Value("uid").(string)
+		id := chi.URLParam(r, "id")
+
+		if err := services.DeleteSecureData(r.Context(), h.db, uid, id); err != nil {
+			handleHTTPError(w, err, http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(""))
 	}
 }
 

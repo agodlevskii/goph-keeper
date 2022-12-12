@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"errors"
 	"sync"
 
 	"github.com/google/uuid"
@@ -35,7 +34,7 @@ func (r *BasicRepo) GetSession(_ context.Context, cid string) (string, error) {
 	if t, ok := r.tokens.Load(cid); ok {
 		return t.(string), nil
 	}
-	return "", errors.New("token not found")
+	return "", ErrNotFound
 }
 
 func (r *BasicRepo) StoreSession(_ context.Context, cid, token string) error {
@@ -50,11 +49,16 @@ func (r *BasicRepo) AddUser(_ context.Context, u User) (User, error) {
 	return u, nil
 }
 
+func (r *BasicRepo) DeleteUser(_ context.Context, uid string) error {
+	r.users.Delete(uid)
+	return nil
+}
+
 func (r *BasicRepo) GetUserByID(_ context.Context, uid string) (User, error) {
 	if u, ok := r.users.Load(uid); ok {
 		return u.(User), nil
 	}
-	return User{}, errors.New("user not found")
+	return User{}, ErrNotFound
 }
 
 func (r *BasicRepo) GetUserByName(_ context.Context, name string) (User, error) {
@@ -70,9 +74,19 @@ func (r *BasicRepo) GetUserByName(_ context.Context, name string) (User, error) 
 	})
 
 	if user.ID == "" {
-		return User{}, errors.New("user not found")
+		return User{}, ErrNotFound
 	}
 	return user, nil
+}
+
+func (r *BasicRepo) DeleteData(_ context.Context, uid, id string) error {
+	if d, ok := r.data.Load(id); ok {
+		data := d.(SecureData)
+		if data.UID == uid {
+			r.data.Delete(id)
+		}
+	}
+	return nil
 }
 
 func (r *BasicRepo) GetAllDataByType(_ context.Context, uid string, t Type) ([]SecureData, error) {
@@ -103,7 +117,7 @@ func (r *BasicRepo) GetDataByID(_ context.Context, uid, id string) (SecureData, 
 			return data, nil
 		}
 	}
-	return SecureData{}, errors.New("data not found")
+	return SecureData{}, ErrNotFound
 }
 
 func (r *BasicRepo) StoreData(_ context.Context, data SecureData) (string, error) {

@@ -8,6 +8,9 @@ import (
 	"io"
 )
 
+var ErrDecryption = errors.New("enc: failed to decrypt data")
+var ErrDataLength = errors.New("enc: the data length is too short for encryption")
+
 var secret = []byte("f91j&famF*kf_PgjJ1Yfv$_0f1A8BB#2")
 
 func EncryptData(data []byte) ([]byte, error) {
@@ -34,7 +37,7 @@ func DecryptData(data []byte) ([]byte, error) {
 	gcm, err := cipher.NewGCM(c)
 	nonceSize := gcm.NonceSize()
 	if len(data) < nonceSize {
-		return nil, errors.New("ciphertext too short")
+		return nil, ErrDataLength
 	}
 
 	nonce, ciphertext := data[:nonceSize], data[nonceSize:]

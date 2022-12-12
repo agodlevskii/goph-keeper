@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 	"errors"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
+	"github.com/agodlevskii/goph-keeper/internal/pkg/jwt"
 )
 
 type AuthReq struct {
@@ -14,6 +16,8 @@ type AuthService struct {
 	session SessionService
 	user    UserService
 }
+
+var ErrWrongCredential = errors.New("invalid username or password")
 
 func NewAuthService(ss SessionService, us UserService) AuthService {
 	return AuthService{
@@ -35,15 +39,15 @@ func (s AuthService) Login(ctx context.Context, cid string, u AuthReq) (string, 
 		if err == nil {
 			return t, cid, nil
 		}
-		if err.Error() != "token is expired" && err.Error() != "token not found" {
+		if !errors.Is(err, jwt.ErrTokenExpired) && !errors.Is(err, storage.ErrNotFound) {
 			return "", "", err
 		}
 	}
 
 	su, err := s.user.GetUser(ctx, u)
 	if err != nil {
-		if err.Error() == "user not found" {
-			return "", "", errors.New("invalid username or password")
+		if errors.Is(err, storage.ErrNotFound) {
+			return "", "", ErrWrongCredential
 		}
 		return "", "", err
 	}

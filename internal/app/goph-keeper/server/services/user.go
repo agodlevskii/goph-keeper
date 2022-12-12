@@ -17,6 +17,8 @@ func NewUserService(db storage.IUserRepo) UserService {
 	return UserService{db: db}
 }
 
+var ErrUserExists = errors.New("the user with specified name already exists")
+
 func (s UserService) AddUser(ctx context.Context, req AuthReq) error {
 	user := getUserFromRequest(req)
 	userExist, err := doesUserExist(ctx, s.db, user)
@@ -24,7 +26,7 @@ func (s UserService) AddUser(ctx context.Context, req AuthReq) error {
 		return err
 	}
 	if userExist {
-		return errors.New("user with the specified name already exists")
+		return ErrUserExists
 	}
 
 	hash, err := enc.HashPassword(user.Password)
@@ -45,7 +47,7 @@ func (s UserService) GetUser(ctx context.Context, user AuthReq) (storage.User, e
 
 	if !enc.VerifyPassword(user.Password, su.Password) {
 		log.Error(user.Password, su.Password)
-		return storage.User{}, errors.New("user not found")
+		return storage.User{}, storage.ErrNotFound
 	}
 	return su, nil
 }
@@ -59,7 +61,7 @@ func getUserFromRequest(r AuthReq) storage.User {
 
 func doesUserExist(ctx context.Context, db storage.IUserRepo, user storage.User) (bool, error) {
 	su, err := db.GetUserByName(ctx, user.Name)
-	if err != nil && err.Error() != "user not found" {
+	if err != nil && errors.Is(err, storage.ErrNotFound) {
 		return false, err
 	}
 	return su.ID != "", nil

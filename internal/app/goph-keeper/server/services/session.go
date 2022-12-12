@@ -2,8 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
-
 	"github.com/segmentio/ksuid"
 
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
@@ -29,7 +27,7 @@ func (s SessionService) RestoreSession(ctx context.Context, cid string) (string,
 		if eErr != nil {
 			return "", eErr
 		}
-		return "", errors.New("token is expired")
+		return "", jwt.ErrTokenExpired
 	}
 
 	return t, nil
@@ -57,7 +55,7 @@ func (s SessionService) IsTokenExpired(token string) (bool, error) {
 		if err != nil {
 			return true, err
 		}
-		return true, errors.New("token is expired")
+		return true, jwt.ErrTokenExpired
 	}
 	return false, nil
 }

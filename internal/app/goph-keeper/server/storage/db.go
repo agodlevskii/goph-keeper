@@ -24,7 +24,8 @@ const (
     	PRIMARY KEY(id),
 		CONSTRAINT fk_user
 		    FOREIGN KEY (uid)
-		        REFERENCES users(id))`
+		        REFERENCES users(id)
+                    ON DELETE CASCADE )`
 	CreateSessionTable = `CREATE TABLE IF NOT EXISTS sessions(
     	cid VARCHAR(50),
 	   	token VARCHAR(165),
@@ -34,12 +35,15 @@ const (
 	GetSession       = "SELECT token FROM sessions WHERE cid = $1"
 	StoreSession     = "INSERT INTO sessions(cid, token) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING token"
 	AddUser          = "INSERT INTO users(name, password) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING id"
+	DeleteUser       = "DELETE FROM users WHERE id = $1"
 	GetUserByID      = "SELECT * FROM users WHERE id = $1"
 	GetUserByName    = "SELECT * FROM users WHERE name = $1"
+	DeleteData       = "DELETE FROM storage WHERE uid = $1 AND id = $2"
 	GetAllDataByType = "SELECT * FROM storage WHERE uid = $1 AND type = $2"
 	GetDataByID      = "SELECT * FROM storage WHERE uid = $1 AND id = $2"
-	StoreData        = `INSERT INTO storage(uid, data, type) VALUES($1, $2, $3)
-																 ON CONFLICT DO NOTHING RETURNING id`
+	StoreData        = `
+		INSERT INTO storage(uid, data, type) VALUES($1, $2, $3) ON CONFLICT DO NOTHING RETURNING id
+	`
 )
 
 type DBRepo struct {
@@ -48,7 +52,7 @@ type DBRepo struct {
 
 func NewDBRepo(ctx context.Context, url string) (*DBRepo, error) {
 	if url == "" {
-		return &DBRepo{}, errors.New("db url is missing")
+		return &DBRepo{}, ErrDBMissingURL
 	}
 
 	db, err := sql.Open("pgx", url)
@@ -71,7 +75,7 @@ func (r *DBRepo) GetSession(ctx context.Context, cid string) (string, error) {
 	var token string
 	err := r.db.QueryRowContext(ctx, GetSession, cid).Scan(&token)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
-		err = errors.New("token not found")
+		return "", ErrNotFound
 	}
 	return token, err
 }
@@ -85,7 +89,7 @@ func (r *DBRepo) AddUser(ctx context.Context, u User) (User, error) {
 	var id string
 	if err := r.db.QueryRowContext(ctx, AddUser, u.Name, u.Password).Scan(&id); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			err = errors.New("user with the specified name already exists")
+			return User{}, ErrNotFound
 		}
 		return User{}, err
 	}
@@ -94,12 +98,22 @@ func (r *DBRepo) AddUser(ctx context.Context, u User) (User, error) {
 	return u, nil
 }
 
+func (r *DBRepo) DeleteUser(ctx context.Context, uid string) error {
+	_, err := r.db.ExecContext(ctx, DeleteUser, uid)
+	return err
+}
+
 func (r *DBRepo) GetUserByID(ctx context.Context, uid string) (User, error) {
 	return r.getUser(ctx, GetUserByID, uid)
 }
 
 func (r *DBRepo) GetUserByName(ctx context.Context, name string) (User, error) {
 	return r.getUser(ctx, GetUserByName, name)
+}
+
+func (r *DBRepo) DeleteData(ctx context.Context, uid, id string) error {
+	_, err := r.db.ExecContext(ctx, DeleteData, uid, id)
+	return err
 }
 
 func (r *DBRepo) GetAllDataByType(ctx context.Context, uid string, t Type) ([]SecureData, error) {
@@ -139,7 +153,7 @@ func (r *DBRepo) getUser(ctx context.Context, query string, args ...any) (User, 
 	var user User
 	err := r.db.QueryRowContext(ctx, query, args...).Scan(&user.ID, &user.Name, &user.Password)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
-		err = nil
+		return User{}, ErrNotFound
 	}
 	return user, nil
 }

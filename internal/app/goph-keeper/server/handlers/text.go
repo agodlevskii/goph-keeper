@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -29,7 +31,7 @@ func (h Handler) GetTextByID() http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 
 		t, err := services.GetTextByID(r.Context(), h.db, uid, id)
-		if err != nil && err.Error() != "stored text not found" {
+		if err != nil && errors.Is(err, storage.ErrNotFound) {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return
 		}

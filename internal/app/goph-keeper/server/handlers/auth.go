@@ -3,8 +3,10 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services"
+	"errors"
 	"net/http"
+
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services"
 )
 
 func (h Handler) Auth(next http.Handler) http.Handler {
@@ -38,7 +40,7 @@ func (h Handler) Login() http.HandlerFunc {
 
 		token, cid, err := h.auth.Login(r.Context(), cid, req)
 		if err != nil {
-			if err.Error() == "invalid username or password" {
+			if errors.Is(err, services.ErrWrongCredential) {
 				handleHTTPError(w, err, http.StatusUnauthorized)
 			} else {
 				handleHTTPError(w, err, http.StatusInternalServerError)
@@ -78,7 +80,7 @@ func (h Handler) Register() http.HandlerFunc {
 		}
 
 		if err := h.auth.Register(r.Context(), u); err != nil {
-			if err.Error() == "user with the specified name already exists" {
+			if errors.Is(err, services.ErrUserExists) {
 				handleHTTPError(w, err, http.StatusConflict)
 			} else {
 				handleHTTPError(w, err, http.StatusInternalServerError)

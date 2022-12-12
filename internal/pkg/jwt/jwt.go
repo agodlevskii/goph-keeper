@@ -9,6 +9,10 @@ import (
 
 var secret = []byte("j6hsdQ$pj9_ymLQ0")
 
+var ErrTokenExpired = errors.New("jwt: token is expired")
+var ErrTokenSigning = errors.New("jwt: unexpected token signing method")
+var ErrTokenClaims = errors.New("jwt: failed to extract claims from a token")
+
 func EncodeToken(uid string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"exp": time.Now().Add(time.Hour * 12).Unix(),
@@ -37,7 +41,7 @@ func IsTokenExpired(token string) (bool, error) {
 func getClaims(ts string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(ts, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("unexpected token signing method")
+			return nil, ErrTokenSigning
 		}
 		return secret, nil
 	})
@@ -48,5 +52,5 @@ func getClaims(ts string) (jwt.MapClaims, error) {
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		return claims, nil
 	}
-	return jwt.MapClaims{}, errors.New("couldn't get claims")
+	return jwt.MapClaims{}, ErrTokenClaims
 }
