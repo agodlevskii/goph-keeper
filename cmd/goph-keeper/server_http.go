@@ -45,15 +45,22 @@ func getServer() *http.Server {
 
 	h := handlers.NewHandler(db)
 	return &http.Server{
-		Addr:              "localhost:8081",
+		Addr:              "localhost:8443",
 		Handler:           h,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 }
 
 func startServer(s *http.Server) {
-	if err := s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		log.Error(err)
+	path, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	path += "/cmd/goph-keeper/"
+	err = s.ListenAndServeTLS(path+"cert.pem", path+"key.pem")
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		log.Fatal(err)
 	}
 }
 
