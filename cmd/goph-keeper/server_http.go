@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/handlers"
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
+	"github.com/agodlevskii/goph-keeper/internal/pkg/cert"
 	"net/http"
 	"os"
 	"os/signal"
@@ -42,23 +44,27 @@ func getServer() *http.Server {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	h := handlers.NewHandler(db)
-	return &http.Server{
-		Addr:              "localhost:8443",
-		Handler:           h,
-		ReadHeaderTimeout: 5 * time.Second,
-	}
-}
-
-func startServer(s *http.Server) {
-	path, err := os.Getwd()
+	tlsCfg, err := getTLSConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	path += "/cmd/goph-keeper/"
-	err = s.ListenAndServeTLS(path+"cert.pem", path+"key.pem")
+	h := handlers.NewHandler(db)
+	return &http.Server{
+		Addr:              ":8443",
+		Handler:           h,
+		ReadHeaderTimeout: 5 * time.Second,
+		TLSConfig:         tlsCfg,
+	}
+}
+
+func startServer(s *http.Server) {
+	cPaths, err := cert.GetCertificatePaths()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = s.ListenAndServeTLS(cPaths.Server.Cert, cPaths.Server.Key)
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		log.Fatal(err)
 	}
@@ -71,6 +77,18 @@ func stopServer(s *http.Server) {
 	if err := s.Shutdown(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		log.Error(err)
 	}
+}
+
+func getTLSConfig() (*tls.Config, error) {
+	caCertPool, err := cert.GetCertificatePool()
+	if err != nil {
+		return &tls.Config{}, err
+	}
+
+	return &tls.Config{
+		ClientCAs:  caCertPool,
+		ClientAuth: tls.RequireAndVerifyClientCert,
+	}, nil
 }
 
 func printCompilationInfo() {
