@@ -1,0 +1,6 @@
+api:
+  host: "localhost"
+  port: 8081
+  route: "/api/v1"
+  secure: false
+  
