@@ -1,5 +1,9 @@
 package client
 
+type KeeperClientConfig interface {
+	GetAPIAddress() string
+}
+
 type KeeperClient interface {
 	Login(user, password string)
 }

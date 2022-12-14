@@ -5,9 +5,6 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/handlers"
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
-	"github.com/agodlevskii/goph-keeper/internal/pkg/cert"
 	"net/http"
 	"os"
 	"os/signal"
@@ -15,6 +12,11 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/handlers"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
+	"github.com/agodlevskii/goph-keeper/internal/pkg/cert"
+	"github.com/agodlevskii/goph-keeper/internal/pkg/cfg/server_config"
 )
 
 var (
@@ -22,9 +24,19 @@ var (
 	buildDate    string
 )
 
+type ServerConfig interface {
+	GetRepoURL() string
+	GetServerAddress() string
+	IsServerSecure() bool
+}
+
 func main() {
 	printCompilationInfo()
-	s := getServer()
+	sCfg := server_config.New(server_config.WithEnv(), server_config.WithFile())
+	s, err := getServer(sCfg)
+	if err != nil {
+		log.Fatal(err)
+	}
 	idleConnectionsClosed := make(chan any)
 
 	go func() {
@@ -35,36 +47,46 @@ func main() {
 		close(idleConnectionsClosed)
 	}()
 
-	go startServer(s)
+	go startServer(s, sCfg)
 	<-idleConnectionsClosed
 }
 
-func getServer() *http.Server {
-	db, err := storage.NewStorage("")
+func getServer(sCfg ServerConfig) (*http.Server, error) {
+	db, err := storage.NewStorage(sCfg.GetRepoURL())
 	if err != nil {
-		log.Fatal(err)
-	}
-	tlsCfg, err := getTLSConfig()
-	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	h := handlers.NewHandler(db)
-	return &http.Server{
-		Addr:              ":8443",
+	s := &http.Server{
+		Addr:              sCfg.GetServerAddress(),
 		Handler:           h,
 		ReadHeaderTimeout: 5 * time.Second,
-		TLSConfig:         tlsCfg,
 	}
+
+	if sCfg.IsServerSecure() {
+		tlsCfg, tErr := getTLSConfig()
+		if tErr != nil {
+			return nil, tErr
+		}
+		s.TLSConfig = tlsCfg
+	}
+
+	return s, nil
 }
 
-func startServer(s *http.Server) {
+func startServer(s *http.Server, sCfg ServerConfig) {
 	cPaths, err := cert.GetCertificatePaths()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = s.ListenAndServeTLS(cPaths.Server.Cert, cPaths.Server.Key)
+	if sCfg.IsServerSecure() {
+		err = s.ListenAndServeTLS(cPaths.Server.Cert, cPaths.Server.Key)
+	} else {
+		err = s.ListenAndServe()
+	}
+
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		log.Fatal(err)
 	}

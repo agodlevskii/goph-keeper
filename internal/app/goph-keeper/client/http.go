@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"github.com/agodlevskii/goph-keeper/internal/pkg/cfg/client_config"
 	"io"
 	"net/http"
 
@@ -14,7 +15,8 @@ import (
 )
 
 type HTTPKeeperClient struct {
-	http *http.Client
+	http   *http.Client
+	apiURL string
 }
 
 func NewHTTPClient() (HTTPKeeperClient, error) {
@@ -28,6 +30,7 @@ func NewHTTPClient() (HTTPKeeperClient, error) {
 		return HTTPKeeperClient{}, err
 	}
 
+	cfg := getClientConfig()
 	return HTTPKeeperClient{
 		http: &http.Client{
 			Transport: &http.Transport{
@@ -37,6 +40,7 @@ func NewHTTPClient() (HTTPKeeperClient, error) {
 				},
 			},
 		},
+		apiURL: cfg.GetAPIAddress(),
 	}, nil
 }
 
@@ -55,7 +59,7 @@ func (c HTTPKeeperClient) Login(user, password string) {
 		return
 	}
 
-	res, err = makeRequest(c.http, "https://localhost:8443/api/v1/auth/login", body)
+	res, err = makeRequest(c.http, c.apiURL+"/auth/login", body)
 	if err != nil {
 		log.Error(err)
 		return
@@ -69,6 +73,10 @@ func (c HTTPKeeperClient) Login(user, password string) {
 	}
 
 	log.Info(string(token))
+}
+
+func getClientConfig() KeeperClientConfig {
+	return client_config.New(client_config.WithEnv(), client_config.WithFile())
 }
 
 func makeRequest(client *http.Client, url string, body []byte) (*http.Response, error) {
