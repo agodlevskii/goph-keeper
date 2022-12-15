@@ -4,10 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	auth2 "github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/auth"
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/user"
 	"net/http"
+
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/auth"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/user"
 )
+
+type UserID string
+
+const uidKey = UserID("uid")
 
 func (h Handler) Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -23,7 +28,7 @@ func (h Handler) Auth(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "uid", uid)
+		ctx := context.WithValue(r.Context(), uidKey, uid)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -32,7 +37,7 @@ func (h Handler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cid := getClientID(r)
 
-		var req auth2.Request
+		var req auth.Request
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			handleHTTPError(w, err, http.StatusBadRequest)
 			return
@@ -40,7 +45,7 @@ func (h Handler) Login() http.HandlerFunc {
 
 		token, cid, err := h.authService.Login(r.Context(), cid, req)
 		if err != nil {
-			if errors.Is(err, auth2.ErrWrongCredential) {
+			if errors.Is(err, auth.ErrWrongCredential) {
 				handleHTTPError(w, err, http.StatusUnauthorized)
 			} else {
 				handleHTTPError(w, err, http.StatusInternalServerError)
@@ -73,7 +78,7 @@ func (h Handler) Logout() http.HandlerFunc {
 
 func (h Handler) Register() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var u auth2.Request
+		var u auth.Request
 		if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 			handleHTTPError(w, err, http.StatusBadRequest)
 			return

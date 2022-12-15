@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/data"
 )
 
@@ -25,7 +26,7 @@ func (s Service) GetAllTexts(ctx context.Context, uid string) ([]Response, error
 	sd, err := s.dataService.GetAllDataByType(ctx, uid, data.SText)
 	if err != nil {
 		if errors.Is(err, data.ErrNotFound) {
-			err = ErrNotFound
+			return nil, ErrNotFound
 		}
 		return nil, err
 	}
@@ -47,7 +48,7 @@ func (s Service) GetTextByID(ctx context.Context, uid, id string) (Response, err
 	sd, err := s.dataService.GetDataByID(ctx, uid, id)
 	if err != nil {
 		if errors.Is(err, data.ErrNotFound) {
-			err = ErrNotFound
+			return Response{}, ErrNotFound
 		}
 		return Response{}, err
 	}

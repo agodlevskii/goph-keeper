@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"net/http"
+
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/auth"
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/binary"
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/card"
@@ -9,7 +11,6 @@ import (
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/session"
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/text"
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/user"
-	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -17,7 +18,6 @@ import (
 )
 
 type Handler struct {
-	db              any
 	authService     auth.Service
 	binaryService   binary.Service
 	cardService     card.Service

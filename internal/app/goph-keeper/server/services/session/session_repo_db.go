@@ -34,7 +34,7 @@ func NewDBRepo(url string) (*DBRepo, error) {
 	}
 
 	_, err = db.ExecContext(context.Background(), CreateSessionTable)
-	return &DBRepo{db: db}, nil
+	return &DBRepo{db: db}, err
 }
 
 func (r *DBRepo) DeleteSession(ctx context.Context, cid string) error {

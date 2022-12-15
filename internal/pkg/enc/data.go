@@ -20,6 +20,10 @@ func EncryptData(data []byte) ([]byte, error) {
 	}
 
 	gcm, err := cipher.NewGCM(c)
+	if err != nil {
+		return nil, err
+	}
+
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
 		return nil, err
@@ -31,10 +35,14 @@ func EncryptData(data []byte) ([]byte, error) {
 func DecryptData(data []byte) ([]byte, error) {
 	c, err := aes.NewCipher(secret)
 	if err != nil {
-		return nil, err
+		return nil, ErrDecryption
 	}
 
 	gcm, err := cipher.NewGCM(c)
+	if err != nil {
+		return nil, ErrDecryption
+	}
+
 	nonceSize := gcm.NonceSize()
 	if len(data) < nonceSize {
 		return nil, ErrDataLength

@@ -3,15 +3,16 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/card"
 	"net/http"
+
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/card"
 
 	"github.com/go-chi/chi/v5"
 )
 
 func (h Handler) DeleteCard() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		uid := r.Context().Value("uid").(string)
+		uid := r.Context().Value(uidKey).(string)
 		id := chi.URLParam(r, "id")
 
 		if err := h.cardService.DeleteCard(r.Context(), uid, id); err != nil {
@@ -26,7 +27,7 @@ func (h Handler) DeleteCard() http.HandlerFunc {
 
 func (h Handler) GetAllCards() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		uid := r.Context().Value("uid").(string)
+		uid := r.Context().Value(uidKey).(string)
 		cs, err := h.cardService.GetAllCards(r.Context(), uid)
 		if err != nil {
 			handleHTTPError(w, err, http.StatusInternalServerError)
@@ -41,7 +42,7 @@ func (h Handler) GetAllCards() http.HandlerFunc {
 
 func (h Handler) GetCardByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		uid := r.Context().Value("uid").(string)
+		uid := r.Context().Value(uidKey).(string)
 		id := chi.URLParam(r, "id")
 
 		c, err := h.cardService.GetCardByID(r.Context(), uid, id)
@@ -64,7 +65,7 @@ func (h Handler) GetCardByID() http.HandlerFunc {
 
 func (h Handler) StoreCard() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		uid := r.Context().Value("uid").(string)
+		uid := r.Context().Value(uidKey).(string)
 
 		var req card.Request
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

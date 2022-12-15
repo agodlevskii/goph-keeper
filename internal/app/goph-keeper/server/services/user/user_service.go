@@ -2,10 +2,13 @@ package user
 
 import (
 	"context"
+	"database/sql"
 	"errors"
-	"github.com/agodlevskii/goph-keeper/internal/pkg/enc"
-	log "github.com/sirupsen/logrus"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
+
+	"github.com/agodlevskii/goph-keeper/internal/pkg/enc"
 )
 
 type IRepository interface {
@@ -51,6 +54,9 @@ func (s Service) AddUser(ctx context.Context, user User) error {
 func (s Service) GetUser(ctx context.Context, user User) (User, error) {
 	su, err := s.db.GetUserByName(ctx, strings.ToLower(user.Name))
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return User{}, ErrNotFound
+		}
 		return User{}, err
 	}
 
@@ -62,8 +68,8 @@ func (s Service) GetUser(ctx context.Context, user User) (User, error) {
 }
 
 func (s Service) doesUserExist(ctx context.Context, user User) (bool, error) {
-	su, err := s.db.GetUserByName(ctx, user.Name)
-	if err != nil && errors.Is(err, ErrNotFound) {
+	su, err := s.GetUser(ctx, user)
+	if err != nil && !errors.Is(err, ErrNotFound) {
 		return false, err
 	}
 	return su.ID != "", nil

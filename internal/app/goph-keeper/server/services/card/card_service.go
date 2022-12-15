@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/data"
 )
 
@@ -25,7 +26,7 @@ func (s Service) GetAllCards(ctx context.Context, uid string) ([]Response, error
 	sd, err := s.dataService.GetAllDataByType(ctx, uid, data.SCard)
 	if err != nil {
 		if errors.Is(err, data.ErrNotFound) {
-			err = ErrNotFound
+			return nil, ErrNotFound
 		}
 		return nil, err
 	}
@@ -47,7 +48,7 @@ func (s Service) GetCardByID(ctx context.Context, uid, id string) (Response, err
 	d, err := s.dataService.GetDataByID(ctx, uid, id)
 	if err != nil {
 		if errors.Is(err, data.ErrNotFound) {
-			err = ErrNotFound
+			return Response{}, ErrNotFound
 		}
 		return Response{}, nil
 	}

@@ -2,8 +2,9 @@ package user
 
 import (
 	"context"
-	"github.com/google/uuid"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 type BasicRepo struct {

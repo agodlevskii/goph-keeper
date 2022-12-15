@@ -43,7 +43,7 @@ func NewDBRepo(url string) (*DBRepo, error) {
 	}
 
 	_, err = db.ExecContext(context.Background(), CreateStorageTable)
-	return &DBRepo{db: db}, nil
+	return &DBRepo{db: db}, err
 }
 
 func (r *DBRepo) DeleteData(ctx context.Context, uid, id string) error {
@@ -56,7 +56,7 @@ func (r *DBRepo) GetAllDataByType(ctx context.Context, uid string,
 	rows, err := r.db.QueryContext(ctx, GetAllDataByType, uid, t)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			err = ErrNotFound
+			return nil, ErrNotFound
 		}
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (r *DBRepo) GetDataByID(ctx context.Context, uid, id string) (SecureData, e
 	var data SecureData
 	err := r.db.QueryRowContext(ctx, GetDataByID, uid, id).Scan(&data.ID, &data.UID, &data.Data, &data.Type)
 	if errors.Is(err, sql.ErrNoRows) {
-		err = ErrNotFound
+		return SecureData{}, ErrNotFound
 	}
 	return data, err
 }

@@ -1,9 +1,11 @@
-package client_config
+package config
 
 import (
 	"fmt"
-	"github.com/agodlevskii/goph-keeper/internal/pkg/cfg"
+
 	log "github.com/sirupsen/logrus"
+
+	"github.com/agodlevskii/goph-keeper/internal/pkg/configs"
 )
 
 type ClientConfig struct {
@@ -17,25 +19,25 @@ type ClientConfig struct {
 }
 
 func New(opts ...func(*ClientConfig)) *ClientConfig {
-	config := &ClientConfig{}
+	cfg := &ClientConfig{}
 	for _, o := range opts {
-		o(config)
+		o(cfg)
 	}
-	return config
+	return cfg
 }
 
 func WithEnv() func(*ClientConfig) {
-	return func(config *ClientConfig) {
-		if err := cfg.UpdateConfigFromEnv(config); err != nil {
+	return func(cfg *ClientConfig) {
+		if err := configs.UpdateConfigFromEnv(cfg); err != nil {
 			log.Error(err)
 		}
 	}
 }
 
-func WithFile() func(config *ClientConfig) {
-	return func(config *ClientConfig) {
+func WithFile() func(cfg *ClientConfig) {
+	return func(cfg *ClientConfig) {
 		var fCfg ClientConfig
-		if err := cfg.UpdateConfigFromFile(config, &fCfg, config.File); err != nil {
+		if err := configs.UpdateConfigFromFile(cfg, &fCfg, cfg.File); err != nil {
 			log.Error(err)
 		}
 	}

@@ -36,7 +36,7 @@ func NewDBRepo(url string) (*DBRepo, error) {
 	}
 
 	_, err = db.ExecContext(context.Background(), CreateUserTable)
-	return &DBRepo{db: db}, nil
+	return &DBRepo{db: db}, err
 }
 
 func (r *DBRepo) AddUser(ctx context.Context, user User) (User, error) {

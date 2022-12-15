@@ -1,21 +1,22 @@
-package cfg
+package configs
 
 import (
 	"encoding/json"
 	"errors"
-	"github.com/caarlos0/env"
 	"io"
 	"os"
 	"path/filepath"
 	"reflect"
 
+	"github.com/caarlos0/env"
+
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 )
 
-var ErrDifferentTypes = errors.New("unknown config type")
-var ErrMissing = errors.New("config path is missing")
-var ErrUnknownType = errors.New("unknown config type")
+var ErrDifferentTypes = errors.New("unknown configs type")
+var ErrMissing = errors.New("configs path is missing")
+var ErrUnknownType = errors.New("unknown configs type")
 
 func UpdateConfigFromEnv(cfg any) error {
 	return env.Parse(cfg)
@@ -37,7 +38,7 @@ func getConfigsDirPath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(wd, "..", "..", "configs"), nil
+	return filepath.Join(wd, "..", "..", "..", "configs"), nil
 }
 
 func getConfigFromFile(fName string, fCfg any) (any, error) {
@@ -61,11 +62,9 @@ func getConfigFromFile(fName string, fCfg any) (any, error) {
 	switch filepath.Ext(fName) {
 	case ".json":
 		err = json.Unmarshal(cfgBytes, fCfg)
-		break
 	case ".yaml":
 	case ".yml":
 		err = yaml.Unmarshal(cfgBytes, fCfg)
-		break
 	default:
 		err = ErrUnknownType
 	}

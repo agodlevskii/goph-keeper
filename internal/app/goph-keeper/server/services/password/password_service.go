@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/data"
 )
 
@@ -25,7 +26,7 @@ func (s Service) GetAllPasswords(ctx context.Context, uid string) ([]Response, e
 	encPass, err := s.dataService.GetAllDataByType(ctx, uid, data.SPassword)
 	if err != nil {
 		if errors.Is(err, data.ErrNotFound) {
-			err = ErrNotFound
+			return nil, ErrNotFound
 		}
 		return nil, err
 	}
@@ -47,7 +48,7 @@ func (s Service) GetPasswordByID(ctx context.Context, uid, id string) (Response,
 	ep, err := s.dataService.GetDataByID(ctx, uid, id)
 	if err != nil {
 		if errors.Is(err, data.ErrNotFound) {
-			err = ErrNotFound
+			return Response{}, ErrNotFound
 		}
 		return Response{}, nil
 	}

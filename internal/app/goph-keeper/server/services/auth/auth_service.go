@@ -3,10 +3,11 @@ package auth
 import (
 	"context"
 	"errors"
+	"strings"
+
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/session"
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/user"
 	"github.com/agodlevskii/goph-keeper/internal/pkg/jwt"
-	"strings"
 )
 
 type Service struct {
@@ -27,7 +28,7 @@ func (s Service) Authorize(token string) (string, error) {
 	if exp, err := s.sessionService.IsTokenExpired(token); err != nil || exp {
 		return "", err
 	}
-	return s.sessionService.GetUidFromToken(token)
+	return s.sessionService.GetUIDFromToken(token)
 }
 
 func (s Service) Login(ctx context.Context, cid string, req Request) (string, string, error) {
@@ -36,7 +37,7 @@ func (s Service) Login(ctx context.Context, cid string, req Request) (string, st
 		if err == nil {
 			return t, cid, nil
 		}
-		if !errors.Is(err, jwt.ErrTokenExpired) && !errors.Is(err, user.ErrNotFound) {
+		if !errors.Is(err, jwt.ErrTokenExpired) && !errors.Is(err, session.ErrNotFound) {
 			return "", "", err
 		}
 	}

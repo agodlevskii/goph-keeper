@@ -12,7 +12,7 @@ import (
 
 func (h Handler) DeleteBinary() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		uid := r.Context().Value("uid").(string)
+		uid := r.Context().Value(uidKey).(string)
 		id := chi.URLParam(r, "id")
 
 		if err := h.binaryService.DeleteBinary(r.Context(), uid, id); err != nil {
@@ -27,7 +27,7 @@ func (h Handler) DeleteBinary() http.HandlerFunc {
 
 func (h Handler) GetAllBinaries() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		uid := r.Context().Value("uid").(string)
+		uid := r.Context().Value(uidKey).(string)
 		bs, err := h.binaryService.GetAllBinaries(r.Context(), uid)
 		if err != nil {
 			handleHTTPError(w, err, http.StatusInternalServerError)
@@ -42,7 +42,7 @@ func (h Handler) GetAllBinaries() http.HandlerFunc {
 
 func (h Handler) GetBinaryByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		uid := r.Context().Value("uid").(string)
+		uid := r.Context().Value(uidKey).(string)
 		id := chi.URLParam(r, "id")
 
 		b, err := h.binaryService.GetBinaryByID(r.Context(), uid, id)
@@ -65,7 +65,7 @@ func (h Handler) GetBinaryByID() http.HandlerFunc {
 
 func (h Handler) StoreBinary() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		uid := r.Context().Value("uid").(string)
+		uid := r.Context().Value(uidKey).(string)
 
 		var req binary.Request
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

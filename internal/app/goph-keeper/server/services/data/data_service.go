@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/agodlevskii/goph-keeper/internal/pkg/enc"
 )
 

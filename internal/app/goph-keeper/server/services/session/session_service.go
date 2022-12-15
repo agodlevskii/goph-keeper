@@ -2,6 +2,7 @@ package session
 
 import (
 	"context"
+
 	"github.com/segmentio/ksuid"
 
 	"github.com/agodlevskii/goph-keeper/internal/pkg/jwt"
@@ -55,7 +56,7 @@ func (s Service) GenerateToken(uid string) (string, error) {
 	return jwt.EncodeToken(uid)
 }
 
-func (s Service) GetUidFromToken(token string) (string, error) {
+func (s Service) GetUIDFromToken(token string) (string, error) {
 	return jwt.GetUserIDFromToken(token)
 }
 
