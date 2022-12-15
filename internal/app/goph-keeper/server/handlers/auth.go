@@ -3,8 +3,10 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services"
+	"errors"
 	"net/http"
+
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services"
 )
 
 func (h Handler) Auth(next http.Handler) http.Handler {
@@ -15,7 +17,7 @@ func (h Handler) Auth(next http.Handler) http.Handler {
 			return
 		}
 
-		uid, err := h.as.Authorize(cookie.Value)
+		uid, err := h.auth.Authorize(cookie.Value)
 		if err != nil {
 			handleHTTPError(w, err, http.StatusUnauthorized)
 			return
@@ -36,9 +38,9 @@ func (h Handler) Login() http.HandlerFunc {
 			return
 		}
 
-		token, cid, err := h.as.Login(cid, req)
+		token, cid, err := h.auth.Login(r.Context(), cid, req)
 		if err != nil {
-			if err.Error() == "invalid username or password" {
+			if errors.Is(err, services.ErrWrongCredential) {
 				handleHTTPError(w, err, http.StatusUnauthorized)
 			} else {
 				handleHTTPError(w, err, http.StatusInternalServerError)
@@ -59,7 +61,7 @@ func (h Handler) Login() http.HandlerFunc {
 func (h Handler) Logout() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cid := getClientID(r)
-		if loggedOut, err := h.as.Logout(cid); !loggedOut || err != nil {
+		if loggedOut, err := h.auth.Logout(r.Context(), cid); !loggedOut || err != nil {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return
 		}
@@ -77,8 +79,8 @@ func (h Handler) Register() http.HandlerFunc {
 			return
 		}
 
-		if err := h.as.Register(u); err != nil {
-			if err.Error() == "user with the specified name already exists" {
+		if err := h.auth.Register(r.Context(), u); err != nil {
+			if errors.Is(err, services.ErrUserExists) {
 				handleHTTPError(w, err, http.StatusConflict)
 			} else {
 				handleHTTPError(w, err, http.StatusInternalServerError)

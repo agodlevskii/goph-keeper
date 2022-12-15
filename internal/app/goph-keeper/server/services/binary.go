@@ -1,6 +1,8 @@
 package services
 
 import (
+	"context"
+
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
 )
 
@@ -18,8 +20,8 @@ type BinaryRes struct {
 	Note string `json:"note"`
 }
 
-func GetAllBinaries(db storage.IDataRepository, uid string) ([]BinaryRes, error) {
-	sd, err := db.GetAllDataByType(uid, storage.SBinary)
+func GetAllBinaries(ctx context.Context, db storage.IDataRepo, uid string) ([]BinaryRes, error) {
+	sd, err := db.GetAllDataByType(ctx, uid, storage.SBinary)
 	if err != nil {
 		return nil, err
 	}
@@ -30,23 +32,24 @@ func GetAllBinaries(db storage.IDataRepository, uid string) ([]BinaryRes, error)
 		if dErr != nil {
 			return nil, err
 		}
+		b.Data = make([]byte, 0)
 		binaries = append(binaries, b)
 	}
 
 	return binaries, nil
 }
 
-func GetBinaryByID(db storage.IDataRepository, uid, id string) (BinaryRes, error) {
-	d, err := db.GetDataByID(uid, id)
+func GetBinaryByID(ctx context.Context, db storage.IDataRepo, uid, id string) (BinaryRes, error) {
+	d, err := db.GetDataByID(ctx, uid, id)
 	if err != nil {
 		return BinaryRes{}, err
 	}
 	return getBinaryFromSecureData(d)
 }
 
-func StoreBinary(db storage.IDataRepository, uid string, req BinaryReq) (string, error) {
+func StoreBinary(ctx context.Context, db storage.IDataRepo, uid string, req BinaryReq) (string, error) {
 	bin := getBinaryFromRequest(uid, req)
-	return StoreSecureDataFromPayload(db, uid, bin, storage.SBinary)
+	return StoreSecureDataFromPayload(ctx, db, uid, bin, storage.SBinary)
 }
 
 func getBinaryFromSecureData(d storage.SecureData) (BinaryRes, error) {

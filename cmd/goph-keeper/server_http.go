@@ -38,7 +38,11 @@ func main() {
 }
 
 func getServer() *http.Server {
-	db := storage.NewStorage()
+	db, err := storage.NewStorage("")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	h := handlers.NewHandler(db)
 	return &http.Server{
 		Addr:              "localhost:8081",

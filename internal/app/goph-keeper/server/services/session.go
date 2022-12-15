@@ -1,8 +1,7 @@
 package services
 
 import (
-	"errors"
-
+	"context"
 	"github.com/segmentio/ksuid"
 
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
@@ -10,37 +9,37 @@ import (
 )
 
 type SessionService struct {
-	db storage.ISessionRepository
+	db storage.ISessionRepo
 }
 
-func NewSessionService(db storage.ISessionRepository) SessionService {
+func NewSessionService(db storage.ISessionRepo) SessionService {
 	return SessionService{db: db}
 }
 
-func (s SessionService) RestoreSession(cid string) (string, error) {
-	t, err := s.db.GetSession(cid)
+func (s SessionService) RestoreSession(ctx context.Context, cid string) (string, error) {
+	t, err := s.db.GetSession(ctx, cid)
 	if err != nil {
 		return "", err
 	}
 
 	if exp, eErr := jwt.IsTokenExpired(t); eErr != nil || exp {
-		_ = s.DeleteSession(cid)
+		_ = s.DeleteSession(ctx, cid)
 		if eErr != nil {
 			return "", eErr
 		}
-		return "", errors.New("token is expired")
+		return "", jwt.ErrTokenExpired
 	}
 
 	return t, nil
 }
 
-func (s SessionService) StoreSession(token string) (string, error) {
+func (s SessionService) StoreSession(ctx context.Context, token string) (string, error) {
 	cid := generateClientID()
-	return cid, s.db.StoreSession(cid, token)
+	return cid, s.db.StoreSession(ctx, cid, token)
 }
 
-func (s SessionService) DeleteSession(cid string) error {
-	return s.db.DeleteSession(cid)
+func (s SessionService) DeleteSession(ctx context.Context, cid string) error {
+	return s.db.DeleteSession(ctx, cid)
 }
 
 func (s SessionService) GenerateToken(uid string) (string, error) {
@@ -56,7 +55,7 @@ func (s SessionService) IsTokenExpired(token string) (bool, error) {
 		if err != nil {
 			return true, err
 		}
-		return true, errors.New("token is expired")
+		return true, jwt.ErrTokenExpired
 	}
 	return false, nil
 }

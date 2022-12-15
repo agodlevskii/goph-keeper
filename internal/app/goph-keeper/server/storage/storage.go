@@ -1,5 +1,13 @@
 package storage
 
+import (
+	"context"
+	"errors"
+)
+
+var ErrNotFound = errors.New("data not found")
+var ErrDBMissingURL = errors.New("db url is missing")
+
 type Type int
 
 const (
@@ -9,29 +17,30 @@ const (
 	SText
 )
 
-type IRepository interface {
-	IDataRepository
-	ISessionRepository
-	IUserRepository
+type IRepo interface {
+	IDataRepo
+	ISessionRepo
+	IUserRepo
 }
 
-type IDataRepository interface {
-	GetAllData(uid string) ([]SecureData, error)
-	GetAllDataByType(uid string, t Type) ([]SecureData, error)
-	GetDataByID(uid, id string) (SecureData, error)
-	StoreData(data SecureData) (string, error)
+type IDataRepo interface {
+	DeleteData(ctx context.Context, uid, id string) error
+	GetAllDataByType(ctx context.Context, uid string, t Type) ([]SecureData, error)
+	GetDataByID(ctx context.Context, uid, id string) (SecureData, error)
+	StoreData(ctx context.Context, data SecureData) (string, error)
 }
 
-type ISessionRepository interface {
-	DeleteSession(cid string) error
-	GetSession(cid string) (string, error)
-	StoreSession(cid, token string) error
+type ISessionRepo interface {
+	DeleteSession(ctx context.Context, cid string) error
+	GetSession(ctx context.Context, cid string) (string, error)
+	StoreSession(ctx context.Context, cid, token string) error
 }
 
-type IUserRepository interface {
-	AddUser(name, pwd string) (User, error)
-	GetUserByID(string) (User, error)
-	GetUserByName(string) (User, error)
+type IUserRepo interface {
+	AddUser(ctx context.Context, user User) (User, error)
+	DeleteUser(ctx context.Context, uid string) error
+	GetUserByID(ctx context.Context, uid string) (User, error)
+	GetUserByName(ctx context.Context, name string) (User, error)
 }
 
 type SecureData struct {
@@ -47,6 +56,9 @@ type User struct {
 	Password string `json:"password"`
 }
 
-func NewStorage() IRepository {
-	return NewBasicStorage()
+func NewStorage(dbURL string) (IRepo, error) {
+	if dbURL != "" {
+		return NewDBRepo(context.Background(), dbURL)
+	}
+	return NewBasicStorage(), nil
 }
