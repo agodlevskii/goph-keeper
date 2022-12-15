@@ -1,8 +1,14 @@
 package handlers
 
 import (
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services"
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/auth"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/binary"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/card"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/data"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/password"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/session"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/text"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/user"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -11,12 +17,20 @@ import (
 )
 
 type Handler struct {
-	db   storage.IRepo
-	auth services.AuthService
+	db              any
+	authService     auth.Service
+	binaryService   binary.Service
+	cardService     card.Service
+	passwordService password.Service
+	textService     text.Service
 }
 
-func NewHandler(db storage.IRepo) *chi.Mux {
-	h := initHandler(db)
+func NewHandler(repoURL string) (*chi.Mux, error) {
+	h, err := initHandler(repoURL)
+	if err != nil {
+		return nil, err
+	}
+
 	r := chi.NewRouter()
 	r.Use(middleware.Logger, middleware.Compress(5, "/*"))
 
@@ -32,57 +46,58 @@ func NewHandler(db storage.IRepo) *chi.Mux {
 				r.Get("/", h.GetAllBinaries())
 				r.Get("/{id}", h.GetBinaryByID())
 				r.Post("/", h.StoreBinary())
-				r.Delete("/{id}", h.deleteData())
+				r.Delete("/{id}", h.DeleteBinary())
 			})
 
 			r.Route("/card", func(r chi.Router) {
 				r.Get("/", h.GetAllCards())
 				r.Get("/{id}", h.GetCardByID())
 				r.Post("/", h.StoreCard())
-				r.Delete("/{id}", h.deleteData())
+				r.Delete("/{id}", h.DeleteCard())
 			})
 
 			r.Route("/password", func(r chi.Router) {
 				r.Get("/", h.GetAllPasswords())
 				r.Get("/{id}", h.GetPasswordByID())
 				r.Post("/", h.StorePassword())
-				r.Delete("/{id}", h.deleteData())
+				r.Delete("/{id}", h.DeletePassword())
 			})
 
 			r.Route("/text", func(r chi.Router) {
 				r.Get("/", h.GetAllTexts())
 				r.Get("/{id}", h.GetTextByID())
 				r.Post("/", h.StoreText())
-				r.Delete("/{id}", h.deleteData())
+				r.Delete("/{id}", h.DeleteText())
 			})
 		})
 	})
 
-	return r
+	return r, nil
 }
 
-func initHandler(db storage.IRepo) Handler {
-	us := services.NewUserService(db)
-	ss := services.NewSessionService(db)
+func initHandler(repoURL string) (Handler, error) {
+	dataService, err := data.NewService(repoURL)
+	if err != nil {
+		return Handler{}, err
+	}
+
+	sessionService, err := session.NewService(repoURL)
+	if err != nil {
+		return Handler{}, err
+	}
+
+	userService, err := user.NewService(repoURL)
+	if err != nil {
+		return Handler{}, err
+	}
+
 	return Handler{
-		db:   db,
-		auth: services.NewAuthService(ss, us),
-	}
-}
-
-func (h Handler) deleteData() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		uid := r.Context().Value("uid").(string)
-		id := chi.URLParam(r, "id")
-
-		if err := services.DeleteSecureData(r.Context(), h.db, uid, id); err != nil {
-			handleHTTPError(w, err, http.StatusInternalServerError)
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(""))
-	}
+		authService:     auth.NewService(sessionService, userService),
+		binaryService:   binary.NewService(dataService),
+		cardService:     card.NewService(dataService),
+		passwordService: password.NewService(dataService),
+		textService:     text.NewService(dataService),
+	}, nil
 }
 
 func handleHTTPError(w http.ResponseWriter, err error, code int) {

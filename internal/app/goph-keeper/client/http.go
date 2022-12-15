@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/auth"
 	"github.com/agodlevskii/goph-keeper/internal/pkg/cfg/client_config"
 	"io"
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services"
 	"github.com/agodlevskii/goph-keeper/internal/pkg/cert"
 )
 
@@ -51,7 +51,7 @@ func (c HTTPKeeperClient) Login(user, password string) {
 		err  error
 	)
 
-	body, err = json.Marshal(services.AuthReq{
+	body, err = json.Marshal(auth.Request{
 		Name:     user,
 		Password: password,
 	})

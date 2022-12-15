@@ -14,7 +14,6 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/handlers"
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
 	"github.com/agodlevskii/goph-keeper/internal/pkg/cert"
 	"github.com/agodlevskii/goph-keeper/internal/pkg/cfg/server_config"
 )
@@ -52,12 +51,11 @@ func main() {
 }
 
 func getServer(sCfg ServerConfig) (*http.Server, error) {
-	db, err := storage.NewStorage(sCfg.GetRepoURL())
+	h, err := handlers.NewHandler(sCfg.GetRepoURL())
 	if err != nil {
 		return nil, err
 	}
 
-	h := handlers.NewHandler(db)
 	s := &http.Server{
 		Addr:              sCfg.GetServerAddress(),
 		Handler:           h,
