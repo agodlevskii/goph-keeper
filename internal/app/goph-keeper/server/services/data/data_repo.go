@@ -4,8 +4,10 @@ import (
 	"errors"
 )
 
-var ErrDBMissingURL = errors.New("data db url is missing")
-var ErrNotFound = errors.New("data not found")
+var (
+	ErrDBMissingURL = errors.New("data db url is missing")
+	ErrNotFound     = errors.New("data not found")
+)
 
 func NewRepo(repoURL string) (IRepository, error) {
 	if repoURL == "" {

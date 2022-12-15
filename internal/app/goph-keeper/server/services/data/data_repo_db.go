@@ -52,7 +52,8 @@ func (r *DBRepo) DeleteData(ctx context.Context, uid, id string) error {
 }
 
 func (r *DBRepo) GetAllDataByType(ctx context.Context, uid string,
-	t StorageType) ([]SecureData, error) {
+	t StorageType,
+) ([]SecureData, error) {
 	rows, err := r.db.QueryContext(ctx, GetAllDataByType, uid, t)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

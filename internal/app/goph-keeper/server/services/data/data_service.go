@@ -35,7 +35,8 @@ func (s Service) GetDataByID(ctx context.Context, uid, id string) (SecureData, e
 }
 
 func (s Service) StoreSecureDataFromPayload(ctx context.Context, uid string,
-	payload any, t StorageType) (string, error) {
+	payload any, t StorageType,
+) (string, error) {
 	data, err := json.Marshal(payload)
 	if err != nil {
 		return "", err

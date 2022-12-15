@@ -8,8 +8,10 @@ import (
 	"io"
 )
 
-var ErrDecryption = errors.New("enc: failed to decrypt data")
-var ErrDataLength = errors.New("enc: the data length is too short for encryption")
+var (
+	ErrDecryption = errors.New("enc: failed to decrypt data")
+	ErrDataLength = errors.New("enc: the data length is too short for encryption")
+)
 
 var secret = []byte("f91j&famF*kf_PgjJ1Yfv$_0f1A8BB#2")
 

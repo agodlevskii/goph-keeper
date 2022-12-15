@@ -9,14 +9,15 @@ import (
 	"reflect"
 
 	"github.com/caarlos0/env"
-
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 )
 
-var ErrDifferentTypes = errors.New("unknown configs type")
-var ErrMissing = errors.New("configs path is missing")
-var ErrUnknownType = errors.New("unknown configs type")
+var (
+	ErrDifferentTypes = errors.New("unknown configs type")
+	ErrMissing        = errors.New("configs path is missing")
+	ErrUnknownType    = errors.New("unknown configs type")
+)
 
 func UpdateConfigFromEnv(cfg any) error {
 	return env.Parse(cfg)

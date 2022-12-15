@@ -7,11 +7,10 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/client/config"
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/auth"
-
 	log "github.com/sirupsen/logrus"
 
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/client/config"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/auth"
 	"github.com/agodlevskii/goph-keeper/internal/pkg/cert"
 )
 

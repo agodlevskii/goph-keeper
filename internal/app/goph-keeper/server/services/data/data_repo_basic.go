@@ -30,7 +30,8 @@ func (r *BasicRepo) DeleteData(_ context.Context, uid, id string) error {
 }
 
 func (r *BasicRepo) GetAllDataByType(_ context.Context, uid string,
-	t StorageType) ([]SecureData, error) {
+	t StorageType,
+) ([]SecureData, error) {
 	var data []SecureData
 	if us, ok := r.data.Load(uid); ok {
 		us.(Storage).user.Range(func(_, v any) bool {

@@ -9,9 +9,11 @@ import (
 
 var secret = []byte("j6hsdQ$pj9_ymLQ0")
 
-var ErrTokenExpired = errors.New("jwt: token is expired")
-var ErrTokenSigning = errors.New("jwt: unexpected token signing method")
-var ErrTokenClaims = errors.New("jwt: failed to extract claims from a token")
+var (
+	ErrTokenExpired = errors.New("jwt: token is expired")
+	ErrTokenSigning = errors.New("jwt: unexpected token signing method")
+	ErrTokenClaims  = errors.New("jwt: failed to extract claims from a token")
+)
 
 func EncodeToken(uid string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
