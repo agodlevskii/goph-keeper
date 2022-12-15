@@ -11,12 +11,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/config"
+
 	log "github.com/sirupsen/logrus"
 
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/handlers"
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/storage"
 	"github.com/agodlevskii/goph-keeper/internal/pkg/cert"
-	"github.com/agodlevskii/goph-keeper/internal/pkg/cfg/server_config"
 )
 
 var (
@@ -32,7 +32,7 @@ type ServerConfig interface {
 
 func main() {
 	printCompilationInfo()
-	sCfg := server_config.New(server_config.WithEnv(), server_config.WithFile())
+	sCfg := config.New(config.WithEnv(), config.WithFile())
 	s, err := getServer(sCfg)
 	if err != nil {
 		log.Fatal(err)
@@ -52,12 +52,11 @@ func main() {
 }
 
 func getServer(sCfg ServerConfig) (*http.Server, error) {
-	db, err := storage.NewStorage(sCfg.GetRepoURL())
+	h, err := handlers.NewHandler(sCfg.GetRepoURL())
 	if err != nil {
 		return nil, err
 	}
 
-	h := handlers.NewHandler(db)
 	s := &http.Server{
 		Addr:              sCfg.GetServerAddress(),
 		Handler:           h,
@@ -104,12 +103,13 @@ func stopServer(s *http.Server) {
 func getTLSConfig() (*tls.Config, error) {
 	caCertPool, err := cert.GetCertificatePool()
 	if err != nil {
-		return &tls.Config{}, err
+		return nil, err
 	}
 
 	return &tls.Config{
 		ClientCAs:  caCertPool,
 		ClientAuth: tls.RequireAndVerifyClientCert,
+		MinVersion: tls.VersionTLS12,
 	}, nil
 }
 

@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"github.com/agodlevskii/goph-keeper/internal/pkg/cfg/client_config"
 	"io"
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/client/config"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/auth"
 	"github.com/agodlevskii/goph-keeper/internal/pkg/cert"
 )
 
@@ -37,6 +37,7 @@ func NewHTTPClient() (HTTPKeeperClient, error) {
 				TLSClientConfig: &tls.Config{
 					RootCAs:      caCertPool,
 					Certificates: []tls.Certificate{c},
+					MinVersion:   tls.VersionTLS12,
 				},
 			},
 		},
@@ -51,7 +52,7 @@ func (c HTTPKeeperClient) Login(user, password string) {
 		err  error
 	)
 
-	body, err = json.Marshal(services.AuthReq{
+	body, err = json.Marshal(auth.Request{
 		Name:     user,
 		Password: password,
 	})
@@ -76,7 +77,7 @@ func (c HTTPKeeperClient) Login(user, password string) {
 }
 
 func getClientConfig() KeeperClientConfig {
-	return client_config.New(client_config.WithEnv(), client_config.WithFile())
+	return config.New(config.WithEnv(), config.WithFile())
 }
 
 func makeRequest(client *http.Client, url string, body []byte) (*http.Response, error) {

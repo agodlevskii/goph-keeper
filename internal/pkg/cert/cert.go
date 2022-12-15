@@ -65,5 +65,5 @@ func getCertDirPath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(wd, "..", "..", "Cert"), nil
+	return filepath.Join(wd, "..", "..", "..", "Cert"), nil
 }
