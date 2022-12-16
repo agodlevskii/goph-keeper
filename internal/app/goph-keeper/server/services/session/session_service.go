@@ -2,10 +2,17 @@ package session
 
 import (
 	"context"
+	"errors"
 
 	"github.com/segmentio/ksuid"
 
 	"github.com/agodlevskii/goph-keeper/internal/pkg/jwt"
+)
+
+var (
+	ErrEmptyToken   = errors.New("session: token is missing or empty")
+	ErrEmptyUID     = errors.New("session: uid is missing or empty")
+	ErrTokenExpired = errors.New("session: token expired")
 )
 
 type IRepository interface {
@@ -20,10 +27,7 @@ type Service struct {
 
 func NewService(repoURL string) (Service, error) {
 	db, err := NewRepo(repoURL)
-	if err != nil {
-		return Service{}, err
-	}
-	return Service{db: db}, nil
+	return Service{db: db}, err
 }
 
 func (s Service) RestoreSession(ctx context.Context, cid string) (string, error) {
@@ -37,7 +41,7 @@ func (s Service) RestoreSession(ctx context.Context, cid string) (string, error)
 		if eErr != nil {
 			return "", eErr
 		}
-		return "", jwt.ErrTokenExpired
+		return "", ErrTokenExpired
 	}
 
 	return t, nil
@@ -53,19 +57,25 @@ func (s Service) DeleteSession(ctx context.Context, cid string) error {
 }
 
 func (s Service) GenerateToken(uid string) (string, error) {
-	return jwt.EncodeToken(uid)
+	if uid == "" {
+		return "", ErrEmptyUID
+	}
+	return jwt.EncodeToken(uid, 0)
 }
 
 func (s Service) GetUIDFromToken(token string) (string, error) {
+	if token == "" {
+		return "", ErrEmptyToken
+	}
 	return jwt.GetUserIDFromToken(token)
 }
 
 func (s Service) IsTokenExpired(token string) (bool, error) {
 	if exp, err := jwt.IsTokenExpired(token); err != nil || exp {
-		if err != nil {
+		if err != nil && !errors.Is(err, jwt.ErrTokenExpired) {
 			return true, err
 		}
-		return true, jwt.ErrTokenExpired
+		return true, ErrTokenExpired
 	}
 	return false, nil
 }

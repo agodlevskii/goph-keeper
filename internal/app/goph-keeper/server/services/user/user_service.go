@@ -6,8 +6,6 @@ import (
 	"errors"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/agodlevskii/goph-keeper/internal/pkg/enc"
 )
 
@@ -61,7 +59,6 @@ func (s Service) GetUser(ctx context.Context, user User) (User, error) {
 	}
 
 	if !enc.VerifyPassword(user.Password, su.Password) {
-		log.Error(user.Password, su.Password)
 		return User{}, ErrNotFound
 	}
 	return su, nil
