@@ -184,9 +184,7 @@ func TestService_StoreSession(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := Service{
-				db: initBasicRepo(nil),
-			}
+			s := Service{db: initBasicRepo(nil)}
 
 			got, err := s.StoreSession(context.Background(), tt.token)
 			assert.Equal(t, tt.wantErr, err)

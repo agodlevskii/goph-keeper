@@ -22,26 +22,27 @@ type Service struct {
 
 func NewService(repoURL string) (Service, error) {
 	db, err := NewRepo(repoURL)
-	if err != nil {
-		return Service{}, err
-	}
-	return Service{db: db}, nil
+	return Service{db: db}, err
 }
 
-var ErrUserExists = errors.New("the user with specified name already exists")
+var ErrCredMissing = errors.New("the user is missing one or more required fields")
 
 func (s Service) AddUser(ctx context.Context, user User) error {
+	if user.Name == "" || user.Password == "" {
+		return ErrCredMissing
+	}
+
 	userExist, err := s.doesUserExist(ctx, user)
 	if err != nil {
 		return err
 	}
 	if userExist {
-		return ErrUserExists
+		return ErrExists
 	}
 
 	hash, err := enc.HashPassword(user.Password)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	user.Password = hash

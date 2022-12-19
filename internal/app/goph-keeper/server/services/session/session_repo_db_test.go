@@ -18,12 +18,12 @@ func TestDBRepo_DeleteSession(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			eq := mock.ExpectExec(regexp.QuoteMeta(DeleteSession)).WithArgs(tt.cid)
-			if tt.repo[tt.cid] == "" {
-				eq.WillReturnError(ErrNotFound)
-			} else {
-				eq.WillReturnResult(sqlmock.NewResult(1, 1))
+			ee := mock.ExpectExec(regexp.QuoteMeta(DeleteSession)).WithArgs(tt.cid)
+			var rows int64
+			if tt.repo[tt.cid] != "" {
+				rows = 1
 			}
+			ee.WillReturnResult(sqlmock.NewResult(1, rows))
 
 			err = r.DeleteSession(context.Background(), tt.cid)
 			assert.Equal(t, tt.wantErr, err)
