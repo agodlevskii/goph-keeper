@@ -80,8 +80,7 @@ func TestService_AddUser(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := Service{db: initBasicRepo(tt.repo)}
-
-			err := s.AddUser(context.Background(), tt.user)
+			err = s.AddUser(context.Background(), tt.user)
 			assert.Equal(t, tt.wantErr, err)
 		})
 	}

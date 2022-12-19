@@ -104,7 +104,7 @@ func getAddUserCases() []addUserCase {
 			wantErr: ErrCredMissing,
 		},
 		{
-			name:    "Client ID exists",
+			name:    "User ID exists",
 			repo:    map[string]User{tu.ID: tu},
 			user:    tu,
 			wantErr: ErrExists,
@@ -131,7 +131,7 @@ func getDeleteUserCases() []deleteUserCase {
 			wantErr: ErrNotFound,
 		},
 		{
-			name: "Client ID present",
+			name: "User ID present",
 			repo: map[string]User{"testID": {ID: "testID"}},
 			uid:  "testID",
 		},

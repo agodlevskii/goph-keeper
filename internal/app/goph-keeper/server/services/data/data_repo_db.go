@@ -47,17 +47,37 @@ func NewDBRepo(url string) (*DBRepo, error) {
 }
 
 func (r *DBRepo) DeleteData(ctx context.Context, uid, id string) error {
-	_, err := r.db.ExecContext(ctx, DeleteData, uid, id)
-	return err
+	if uid == "" || id == "" {
+		return ErrNotFound
+	}
+
+	res, err := r.db.ExecContext(ctx, DeleteData, uid, id)
+	if err != nil {
+		return err
+	}
+
+	ra, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if ra == 0 {
+		return ErrNotFound
+	}
+
+	return nil
 }
 
 func (r *DBRepo) GetAllDataByType(ctx context.Context, uid string,
 	t StorageType,
 ) ([]SecureData, error) {
+	if uid == "" {
+		return nil, ErrMissingArgs
+	}
+
 	rows, err := r.db.QueryContext(ctx, GetAllDataByType, uid, t)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
+			return nil, nil
 		}
 		return nil, err
 	}
@@ -78,6 +98,10 @@ func (r *DBRepo) GetAllDataByType(ctx context.Context, uid string,
 }
 
 func (r *DBRepo) GetDataByID(ctx context.Context, uid, id string) (SecureData, error) {
+	if uid == "" || id == "" {
+		return SecureData{}, ErrNotFound
+	}
+
 	var data SecureData
 	err := r.db.QueryRowContext(ctx, GetDataByID, uid, id).Scan(&data.ID, &data.UID, &data.Data, &data.Type)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -87,6 +111,10 @@ func (r *DBRepo) GetDataByID(ctx context.Context, uid, id string) (SecureData, e
 }
 
 func (r *DBRepo) StoreData(ctx context.Context, data SecureData) (string, error) {
+	if data.Data == nil || data.UID == "" {
+		return "", ErrEmpty
+	}
+
 	var id string
 	err := r.db.QueryRowContext(ctx, StoreData, data.UID, data.Data, data.Type).Scan(&id)
 	return id, err
