@@ -38,8 +38,20 @@ func NewDBRepo(url string) (*DBRepo, error) {
 }
 
 func (r *DBRepo) DeleteSession(ctx context.Context, cid string) error {
-	_, err := r.db.ExecContext(ctx, DeleteSession, cid)
-	return err
+	res, err := r.db.ExecContext(ctx, DeleteSession, cid)
+	if err != nil {
+		return err
+	}
+
+	ra, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if ra == 0 {
+		return ErrNotFound
+	}
+
+	return nil
 }
 
 func (r *DBRepo) GetSession(ctx context.Context, cid string) (string, error) {
@@ -52,6 +64,18 @@ func (r *DBRepo) GetSession(ctx context.Context, cid string) (string, error) {
 }
 
 func (r *DBRepo) StoreSession(ctx context.Context, cid, token string) error {
-	_, err := r.db.ExecContext(ctx, StoreSession, cid, token)
-	return err
+	res, err := r.db.ExecContext(ctx, StoreSession, cid, token)
+	if err != nil {
+		return err
+	}
+
+	ra, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if ra == 0 {
+		return ErrSessionExists
+	}
+
+	return nil
 }

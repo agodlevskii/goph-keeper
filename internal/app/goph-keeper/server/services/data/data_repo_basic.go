@@ -8,7 +8,7 @@ import (
 )
 
 type BasicRepo struct {
-	data sync.Map
+	data *sync.Map
 }
 
 type Storage struct {
@@ -16,22 +16,26 @@ type Storage struct {
 }
 
 func NewBasicRepo() *BasicRepo {
-	return &BasicRepo{data: sync.Map{}}
+	return &BasicRepo{data: &sync.Map{}}
 }
 
 func (r *BasicRepo) DeleteData(_ context.Context, uid, id string) error {
-	if d, ok := r.data.Load(id); ok {
-		data := d.(SecureData)
-		if data.UID == uid {
-			r.data.Delete(id)
+	if us, ok := r.data.Load(uid); ok {
+		if _, ok = us.(Storage).user.Load(id); ok {
+			us.(Storage).user.Delete(id)
+			return nil
 		}
 	}
-	return nil
+	return ErrNotFound
 }
 
 func (r *BasicRepo) GetAllDataByType(_ context.Context, uid string,
 	t StorageType,
 ) ([]SecureData, error) {
+	if uid == "" {
+		return nil, ErrMissingArgs
+	}
+
 	var data []SecureData
 	if us, ok := r.data.Load(uid); ok {
 		us.(Storage).user.Range(func(_, v any) bool {
@@ -42,7 +46,6 @@ func (r *BasicRepo) GetAllDataByType(_ context.Context, uid string,
 			return true
 		})
 	}
-
 	return data, nil
 }
 
@@ -55,14 +58,17 @@ func (r *BasicRepo) GetDataByID(_ context.Context, uid, id string) (SecureData, 
 
 	if us, ok = r.data.Load(uid); ok {
 		if d, ok = us.(Storage).user.Load(id); ok {
-			data := d.(SecureData)
-			return data, nil
+			return d.(SecureData), nil
 		}
 	}
 	return SecureData{}, ErrNotFound
 }
 
 func (r *BasicRepo) StoreData(_ context.Context, data SecureData) (string, error) {
+	if data.Data == nil || data.UID == "" {
+		return "", ErrEmpty
+	}
+
 	id := uuid.NewString()
 	data.ID = id
 

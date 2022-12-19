@@ -20,10 +20,7 @@ type Service struct {
 
 func NewService(repoURL string) (Service, error) {
 	db, err := NewRepo(repoURL)
-	if err != nil {
-		return Service{}, err
-	}
-	return Service{db: db}, nil
+	return Service{db: db}, err
 }
 
 func (s Service) GetAllDataByType(ctx context.Context, uid string, t StorageType) ([]SecureData, error) {

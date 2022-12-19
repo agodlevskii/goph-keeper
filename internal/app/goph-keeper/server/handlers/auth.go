@@ -85,7 +85,7 @@ func (h Handler) Register() http.HandlerFunc {
 		}
 
 		if err := h.authService.Register(r.Context(), u); err != nil {
-			if errors.Is(err, user.ErrUserExists) {
+			if errors.Is(err, user.ErrExists) {
 				handleHTTPError(w, err, http.StatusConflict)
 			} else {
 				handleHTTPError(w, err, http.StatusInternalServerError)

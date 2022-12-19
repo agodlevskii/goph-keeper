@@ -40,6 +40,10 @@ func NewDBRepo(url string) (*DBRepo, error) {
 }
 
 func (r *DBRepo) AddUser(ctx context.Context, user User) (User, error) {
+	if user.Name == "" || user.Password == "" {
+		return User{}, ErrCredMissing
+	}
+
 	var id string
 	if err := r.db.QueryRowContext(ctx, AddUser, user.Name, user.Password).Scan(&id); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -53,15 +57,33 @@ func (r *DBRepo) AddUser(ctx context.Context, user User) (User, error) {
 }
 
 func (r *DBRepo) DeleteUser(ctx context.Context, uid string) error {
-	_, err := r.db.ExecContext(ctx, DeleteUser, uid)
-	return err
+	res, err := r.db.ExecContext(ctx, DeleteUser, uid)
+	if err != nil {
+		return err
+	}
+
+	ra, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if ra == 0 {
+		return ErrNotFound
+	}
+
+	return nil
 }
 
 func (r *DBRepo) GetUserByID(ctx context.Context, uid string) (User, error) {
+	if uid == "" {
+		return User{}, ErrNotFound
+	}
 	return r.getUser(ctx, GetUserByID, uid)
 }
 
 func (r *DBRepo) GetUserByName(ctx context.Context, name string) (User, error) {
+	if name == "" {
+		return User{}, ErrNotFound
+	}
 	return r.getUser(ctx, GetUserByName, name)
 }
 
