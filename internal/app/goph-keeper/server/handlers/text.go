@@ -5,9 +5,10 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/text"
-
 	"github.com/go-chi/chi/v5"
+
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/models"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services"
 )
 
 func (h Handler) DeleteText() http.HandlerFunc {
@@ -46,7 +47,7 @@ func (h Handler) GetTextByID() http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 
 		t, err := h.textService.GetTextByID(r.Context(), uid, id)
-		if err != nil && errors.Is(err, text.ErrNotFound) {
+		if err != nil && errors.Is(err, services.ErrNotFound) {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return
 		}
@@ -67,7 +68,7 @@ func (h Handler) StoreText() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		uid := r.Context().Value(uidKey).(string)
 
-		var req text.Request
+		var req models.TextRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			handleHTTPError(w, err, http.StatusBadRequest)
 			return

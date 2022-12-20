@@ -4,19 +4,22 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"io"
+	"errors"
 	"net/http"
+	"net/http/cookiejar"
+	"net/url"
+
+	"github.com/agodlevskii/goph-keeper/internal/pkg/services/auth"
 
 	log "github.com/sirupsen/logrus"
 
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/client/config"
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/auth"
 	"github.com/agodlevskii/goph-keeper/internal/pkg/cert"
 )
 
 type HTTPKeeperClient struct {
 	http   *http.Client
-	apiURL string
+	apiURL *url.URL
 }
 
 func NewHTTPClient() (HTTPKeeperClient, error) {
@@ -30,9 +33,20 @@ func NewHTTPClient() (HTTPKeeperClient, error) {
 		return HTTPKeeperClient{}, err
 	}
 
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		return HTTPKeeperClient{}, err
+	}
+
 	cfg := getClientConfig()
+	uri, err := url.Parse(cfg.GetAPIAddress())
+	if err != nil {
+		return HTTPKeeperClient{}, err
+	}
+
 	return HTTPKeeperClient{
 		http: &http.Client{
+			Jar: jar,
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
 					RootCAs:      caCertPool,
@@ -41,39 +55,84 @@ func NewHTTPClient() (HTTPKeeperClient, error) {
 				},
 			},
 		},
-		apiURL: cfg.GetAPIAddress(),
+		apiURL: uri,
 	}, nil
 }
 
-func (c HTTPKeeperClient) Login(user, password string) {
+func (c HTTPKeeperClient) Login(user, password string) error {
 	var (
 		body []byte
 		res  *http.Response
 		err  error
 	)
 
-	body, err = json.Marshal(auth.Request{
+	body, err = json.Marshal(auth.Payload{
 		Name:     user,
 		Password: password,
 	})
 	if err != nil {
-		return
+		return err
 	}
 
-	res, err = makeRequest(c.http, c.apiURL+"/auth/login", body)
+	res, err = makeRequest(c.http, c.apiURL.String()+"/auth/login", body)
 	if err != nil {
-		log.Error(err)
-		return
+		return err
 	}
 	defer closeResponseBody(res)
 
-	token, err := io.ReadAll(res.Body)
-	if err != nil {
-		log.Error(err)
-		return
+	if res.StatusCode != 200 {
+		return errors.New("error")
 	}
 
-	log.Info(string(token))
+	c.http.Jar.SetCookies(c.apiURL, res.Cookies())
+	return nil
+}
+
+func (c HTTPKeeperClient) Logout() error {
+	var (
+		res *http.Response
+		err error
+	)
+
+	res, err = makeRequest(c.http, c.apiURL.String()+"/auth/logout", []byte{})
+	if err != nil {
+		return err
+	}
+	defer closeResponseBody(res)
+
+	if res.StatusCode != 200 {
+		return errors.New("error")
+	}
+
+	c.http.Jar.SetCookies(c.apiURL, nil)
+	return nil
+}
+
+func (c HTTPKeeperClient) Register(user, password string) error {
+	var (
+		body []byte
+		res  *http.Response
+		err  error
+	)
+
+	body, err = json.Marshal(auth.Payload{
+		Name:     user,
+		Password: password,
+	})
+	if err != nil {
+		return err
+	}
+
+	res, err = makeRequest(c.http, c.apiURL.String()+"/auth/register", body)
+	if err != nil {
+		return err
+	}
+	defer closeResponseBody(res)
+
+	if res.StatusCode != 200 {
+		return errors.New("error")
+	}
+	return nil
 }
 
 func getClientConfig() KeeperClientConfig {

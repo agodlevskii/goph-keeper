@@ -1,6 +1,6 @@
-package card
+package models
 
-type Request struct {
+type CardRequest struct {
 	Name    string `json:"name"`
 	Number  string `json:"number"`
 	Holder  string `json:"holder"`
@@ -9,7 +9,7 @@ type Request struct {
 	Note    string `json:"note"`
 }
 
-type Response struct {
+type CardResponse struct {
 	UID     string `json:"-"`
 	ID      string `json:"id"`
 	Name    string `json:"name"`

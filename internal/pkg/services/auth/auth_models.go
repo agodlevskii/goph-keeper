@@ -1,6 +1,6 @@
 package auth
 
-type Request struct {
+type Payload struct {
 	Name     string `json:"name"`
 	Password string `json:"password"`
 }

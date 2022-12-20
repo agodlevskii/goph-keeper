@@ -5,7 +5,9 @@ type KeeperClientConfig interface {
 }
 
 type KeeperClient interface {
-	Login(user, password string)
+	Login(user, password string) error
+	Logout() error
+	Register(user, password string) error
 }
 
 func NewClient() (KeeperClient, error) {

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/data"
+	"github.com/agodlevskii/goph-keeper/internal/pkg/services/data"
 )
 
 type Service struct {
@@ -22,7 +22,7 @@ func (s Service) DeleteCard(ctx context.Context, uid, id string) error {
 	return s.dataService.DeleteSecureData(ctx, uid, id)
 }
 
-func (s Service) GetAllCards(ctx context.Context, uid string) ([]Response, error) {
+func (s Service) GetAllCards(ctx context.Context, uid string) ([]Card, error) {
 	sd, err := s.dataService.GetAllDataByType(ctx, uid, data.SCard)
 	if err != nil {
 		if errors.Is(err, data.ErrNotFound) {
@@ -31,7 +31,7 @@ func (s Service) GetAllCards(ctx context.Context, uid string) ([]Response, error
 		return nil, err
 	}
 
-	cards := make([]Response, 0, len(sd))
+	cards := make([]Card, 0, len(sd))
 	for _, d := range sd {
 		c, eErr := s.getCardFromSecureData(d)
 		if eErr != nil {
@@ -44,45 +44,32 @@ func (s Service) GetAllCards(ctx context.Context, uid string) ([]Response, error
 	return cards, nil
 }
 
-func (s Service) GetCardByID(ctx context.Context, uid, id string) (Response, error) {
+func (s Service) GetCardByID(ctx context.Context, uid, id string) (Card, error) {
 	d, err := s.dataService.GetDataByID(ctx, uid, id)
 	if err != nil {
 		if errors.Is(err, data.ErrNotFound) {
-			return Response{}, ErrNotFound
+			return Card{}, ErrNotFound
 		}
-		return Response{}, nil
+		return Card{}, nil
 	}
 	return s.getCardFromSecureData(d)
 }
 
-func (s Service) StoreCard(ctx context.Context, uid string, req Request) (string, error) {
-	card := s.getCardFromRequest(uid, req)
+func (s Service) StoreCard(ctx context.Context, uid string, card Card) (string, error) {
 	return s.dataService.StoreSecureDataFromPayload(ctx, uid, card, data.SCard)
 }
 
-func (s Service) getCardFromSecureData(d data.SecureData) (Response, error) {
+func (s Service) getCardFromSecureData(d data.SecureData) (Card, error) {
 	b, err := s.dataService.GetDataFromBytes(d.Data)
 	if err != nil {
-		return Response{}, err
+		return Card{}, err
 	}
 
-	var res Response
+	var res Card
 	if err = json.Unmarshal(b, &res); err != nil {
-		return Response{}, err
+		return Card{}, err
 	}
 
 	res.ID = d.ID
 	return res, nil
-}
-
-func (s Service) getCardFromRequest(uid string, req Request) Response {
-	return Response{
-		UID:     uid,
-		Name:    req.Name,
-		Number:  req.Number,
-		Holder:  req.Holder,
-		ExpDate: req.ExpDate,
-		CVV:     req.CVV,
-		Note:    req.Note,
-	}
 }

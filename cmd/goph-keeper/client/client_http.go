@@ -12,5 +12,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	c.Login("test", "super")
+	_ = c.Login("test", "super")
+	_ = c.Logout()
 }

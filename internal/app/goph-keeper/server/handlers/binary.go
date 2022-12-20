@@ -7,7 +7,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/binary"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/models"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services"
 )
 
 func (h Handler) DeleteBinary() http.HandlerFunc {
@@ -46,7 +47,7 @@ func (h Handler) GetBinaryByID() http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 
 		b, err := h.binaryService.GetBinaryByID(r.Context(), uid, id)
-		if err != nil && errors.Is(err, binary.ErrNotFound) {
+		if err != nil && errors.Is(err, services.ErrBinaryNotFound) {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return
 		}
@@ -67,7 +68,7 @@ func (h Handler) StoreBinary() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		uid := r.Context().Value(uidKey).(string)
 
-		var req binary.Request
+		var req models.BinaryRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			handleHTTPError(w, err, http.StatusBadRequest)
 			return
