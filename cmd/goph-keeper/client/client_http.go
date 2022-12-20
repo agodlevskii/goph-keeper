@@ -16,25 +16,25 @@ func main() {
 		log.Error(err)
 	}
 
-	id, err := c.StoreBinary("test", []byte("test"), "note")
+	id, err := c.StoreText("test", "test", "note")
 	if err != nil {
 		log.Error(err)
 	}
 	log.Info(id)
 
-	bin, err := c.GetBinaryByID(id)
+	bin, err := c.GetTextByID(id)
 	if err != nil {
 		log.Error(err)
 	}
 	log.Info(bin)
 
-	bins, err := c.GetAllBinaries()
+	bins, err := c.GetAllTexts()
 	if err != nil {
 		log.Error(err)
 	}
-	log.Info(bins[0].Data)
+	log.Info(bins)
 
-	if err = c.DeleteBinary(id); err != nil {
+	if err = c.DeleteText(id); err != nil {
 		log.Error(err)
 	}
 

@@ -9,14 +9,29 @@ type KeeperClientConfig interface {
 }
 
 type KeeperClient interface {
+	AuthClient
+	BinaryClient
+	TextClient
+}
+
+type AuthClient interface {
 	Login(user, password string) error
 	Logout() error
 	Register(user, password string) error
+}
 
+type BinaryClient interface {
 	DeleteBinary(id string) error
 	GetAllBinaries() ([]models.BinaryResponse, error)
 	GetBinaryByID(id string) (models.BinaryResponse, error)
 	StoreBinary(name string, data []byte, note string) (string, error)
+}
+
+type TextClient interface {
+	DeleteText(id string) error
+	GetAllTexts() ([]models.TextResponse, error)
+	GetTextByID(id string) (models.TextResponse, error)
+	StoreText(name, data, note string) (string, error)
 }
 
 func NewClient() (KeeperClient, error) {
