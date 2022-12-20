@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/data"
+	"github.com/agodlevskii/goph-keeper/internal/pkg/services/data"
 )
 
 type Service struct {
@@ -22,7 +22,7 @@ func (s Service) DeletePassword(ctx context.Context, uid, id string) error {
 	return s.dataService.DeleteSecureData(ctx, uid, id)
 }
 
-func (s Service) GetAllPasswords(ctx context.Context, uid string) ([]Response, error) {
+func (s Service) GetAllPasswords(ctx context.Context, uid string) ([]Password, error) {
 	encPass, err := s.dataService.GetAllDataByType(ctx, uid, data.SPassword)
 	if err != nil {
 		if errors.Is(err, data.ErrNotFound) {
@@ -31,7 +31,7 @@ func (s Service) GetAllPasswords(ctx context.Context, uid string) ([]Response, e
 		return nil, err
 	}
 
-	ps := make([]Response, 0, len(encPass))
+	ps := make([]Password, 0, len(encPass))
 	for _, ec := range encPass {
 		p, eErr := s.getPasswordFromSecureData(ec)
 		if eErr != nil {
@@ -44,43 +44,32 @@ func (s Service) GetAllPasswords(ctx context.Context, uid string) ([]Response, e
 	return ps, nil
 }
 
-func (s Service) GetPasswordByID(ctx context.Context, uid, id string) (Response, error) {
+func (s Service) GetPasswordByID(ctx context.Context, uid, id string) (Password, error) {
 	ep, err := s.dataService.GetDataByID(ctx, uid, id)
 	if err != nil {
 		if errors.Is(err, data.ErrNotFound) {
-			return Response{}, ErrNotFound
+			return Password{}, ErrNotFound
 		}
-		return Response{}, nil
+		return Password{}, nil
 	}
 	return s.getPasswordFromSecureData(ep)
 }
 
-func (s Service) StorePassword(ctx context.Context, uid string, req Request) (string, error) {
-	pass := s.getPasswordFromRequest(uid, req)
-	return s.dataService.StoreSecureDataFromPayload(ctx, uid, pass, data.SPassword)
+func (s Service) StorePassword(ctx context.Context, pass Password) (string, error) {
+	return s.dataService.StoreSecureDataFromPayload(ctx, pass.UID, pass, data.SPassword)
 }
 
-func (s Service) getPasswordFromSecureData(d data.SecureData) (Response, error) {
+func (s Service) getPasswordFromSecureData(d data.SecureData) (Password, error) {
 	b, err := s.dataService.GetDataFromBytes(d.Data)
 	if err != nil {
-		return Response{}, err
+		return Password{}, err
 	}
 
-	var res Response
+	var res Password
 	if err = json.Unmarshal(b, &res); err != nil {
-		return Response{}, err
+		return Password{}, err
 	}
 
 	res.ID = d.ID
 	return res, nil
-}
-
-func (s Service) getPasswordFromRequest(uid string, req Request) Response {
-	return Response{
-		UID:      uid,
-		Name:     req.Name,
-		User:     req.User,
-		Password: req.Password,
-		Note:     req.Note,
-	}
 }

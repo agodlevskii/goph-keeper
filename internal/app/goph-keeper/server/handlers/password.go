@@ -5,9 +5,10 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/password"
-
 	"github.com/go-chi/chi/v5"
+
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/models"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services"
 )
 
 func (h Handler) DeletePassword() http.HandlerFunc {
@@ -46,7 +47,7 @@ func (h Handler) GetPasswordByID() http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 
 		p, err := h.passwordService.GetPasswordByID(r.Context(), uid, id)
-		if err != nil && errors.Is(err, password.ErrNotFound) {
+		if err != nil && errors.Is(err, services.ErrPasswordNotFound) {
 			handleHTTPError(w, err, http.StatusInternalServerError)
 			return
 		}
@@ -67,7 +68,7 @@ func (h Handler) StorePassword() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		uid := r.Context().Value(uidKey).(string)
 
-		var req password.Request
+		var req models.PasswordRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			handleHTTPError(w, err, http.StatusBadRequest)
 			return

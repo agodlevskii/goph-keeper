@@ -5,8 +5,8 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/session"
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/user"
+	"github.com/agodlevskii/goph-keeper/internal/pkg/services/session"
+	"github.com/agodlevskii/goph-keeper/internal/pkg/services/user"
 )
 
 type Service struct {
@@ -30,7 +30,7 @@ func (s Service) Authorize(token string) (string, error) {
 	return s.sessionService.GetUIDFromToken(token)
 }
 
-func (s Service) Login(ctx context.Context, cid string, req Request) (string, string, error) {
+func (s Service) Login(ctx context.Context, cid string, req Payload) (string, string, error) {
 	if cid != "" {
 		t, err := s.sessionService.RestoreSession(ctx, cid)
 		if err == nil {
@@ -69,12 +69,12 @@ func (s Service) Logout(ctx context.Context, cid string) (bool, error) {
 	return true, nil
 }
 
-func (s Service) Register(ctx context.Context, req Request) error {
+func (s Service) Register(ctx context.Context, req Payload) error {
 	u := getUserFromRequest(req)
 	return s.userService.AddUser(ctx, u)
 }
 
-func getUserFromRequest(req Request) user.User {
+func getUserFromRequest(req Payload) user.User {
 	return user.User{
 		Name:     strings.ToLower(req.Name),
 		Password: req.Password,

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/data"
+	"github.com/agodlevskii/goph-keeper/internal/pkg/services/data"
 )
 
 type Service struct {
@@ -22,7 +22,7 @@ func (s Service) DeleteBinary(ctx context.Context, uid, id string) error {
 	return s.dataService.DeleteSecureData(ctx, uid, id)
 }
 
-func (s Service) GetAllBinaries(ctx context.Context, uid string) ([]Response, error) {
+func (s Service) GetAllBinaries(ctx context.Context, uid string) ([]Binary, error) {
 	sd, err := s.dataService.GetAllDataByType(ctx, uid, data.SBinary)
 	if err != nil {
 		if errors.Is(err, data.ErrNotFound) {
@@ -31,7 +31,7 @@ func (s Service) GetAllBinaries(ctx context.Context, uid string) ([]Response, er
 		return nil, err
 	}
 
-	binaries := make([]Response, 0, len(sd))
+	binaries := make([]Binary, 0, len(sd))
 	for _, d := range sd {
 		b, dErr := s.getBinaryFromSecureData(d)
 		if dErr != nil {
@@ -44,42 +44,32 @@ func (s Service) GetAllBinaries(ctx context.Context, uid string) ([]Response, er
 	return binaries, nil
 }
 
-func (s Service) GetBinaryByID(ctx context.Context, uid, id string) (Response, error) {
+func (s Service) GetBinaryByID(ctx context.Context, uid, id string) (Binary, error) {
 	d, err := s.dataService.GetDataByID(ctx, uid, id)
 	if err != nil {
 		if errors.Is(err, data.ErrNotFound) {
-			return Response{}, ErrNotFound
+			return Binary{}, ErrNotFound
 		}
-		return Response{}, err
+		return Binary{}, err
 	}
 	return s.getBinaryFromSecureData(d)
 }
 
-func (s Service) StoreBinary(ctx context.Context, uid string, req Request) (string, error) {
-	bin := s.getBinaryFromRequest(uid, req)
-	return s.dataService.StoreSecureDataFromPayload(ctx, uid, bin, data.SBinary)
+func (s Service) StoreBinary(ctx context.Context, uid string, binary Binary) (string, error) {
+	return s.dataService.StoreSecureDataFromPayload(ctx, uid, binary, data.SBinary)
 }
 
-func (s Service) getBinaryFromSecureData(d data.SecureData) (Response, error) {
+func (s Service) getBinaryFromSecureData(d data.SecureData) (Binary, error) {
 	b, err := s.dataService.GetDataFromBytes(d.Data)
 	if err != nil {
-		return Response{}, err
+		return Binary{}, err
 	}
 
-	var res Response
+	var res Binary
 	if err = json.Unmarshal(b, &res); err != nil {
-		return Response{}, err
+		return Binary{}, err
 	}
 
 	res.ID = d.ID
 	return res, nil
-}
-
-func (s Service) getBinaryFromRequest(uid string, req Request) Response {
-	return Response{
-		UID:  uid,
-		Name: req.Name,
-		Data: req.Data,
-		Note: req.Note,
-	}
 }
