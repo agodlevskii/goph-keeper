@@ -252,8 +252,7 @@ func (c HTTPKeeperClient) StorePassword(name, user, password, note string) (stri
 }
 
 func (c HTTPKeeperClient) deleteData(url, id string) error {
-	url += id
-	_, err := http.NewRequest(http.MethodDelete, url, nil)
+	_, err := c.makeRequest(http.MethodDelete, url+id, nil)
 	return err
 }
 
@@ -266,8 +265,7 @@ func (c HTTPKeeperClient) getAllData(url string) (io.ReadCloser, error) {
 }
 
 func (c HTTPKeeperClient) getDataByID(url, id string) (io.ReadCloser, error) {
-	url += id
-	res, err := c.makeRequest(http.MethodGet, url, nil)
+	res, err := c.makeRequest(http.MethodGet, url+id, nil)
 	if err != nil {
 		return nil, err
 	}
