@@ -11,6 +11,7 @@ type KeeperClientConfig interface {
 type KeeperClient interface {
 	AuthClient
 	BinaryClient
+	CardClient
 	TextClient
 }
 
@@ -25,6 +26,13 @@ type BinaryClient interface {
 	GetAllBinaries() ([]models.BinaryResponse, error)
 	GetBinaryByID(id string) (models.BinaryResponse, error)
 	StoreBinary(name string, data []byte, note string) (string, error)
+}
+
+type CardClient interface {
+	DeleteCard(id string) error
+	GetAllCards() ([]models.CardResponse, error)
+	GetCardByID(id string) (models.CardResponse, error)
+	StoreCard(name, number, holder, expDate, cvv, note string) (string, error)
 }
 
 type TextClient interface {

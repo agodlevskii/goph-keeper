@@ -159,7 +159,7 @@ func (c HTTPKeeperClient) GetTextByID(id string) (models.TextResponse, error) {
 	var data models.TextResponse
 	body, err := c.getDataByID(SText, id)
 	if err != nil {
-		return models.TextResponse{}, err
+		return data, err
 	}
 	defer closeResponseBody(body)
 
@@ -172,6 +172,45 @@ func (c HTTPKeeperClient) StoreText(name, data, note string) (string, error) {
 		Name: name,
 		Data: data,
 		Note: note,
+	})
+}
+
+func (c HTTPKeeperClient) DeleteCard(id string) error {
+	return c.deleteData(SCard, id)
+}
+
+func (c HTTPKeeperClient) GetAllCards() ([]models.CardResponse, error) {
+	body, err := c.getAllData(SCard)
+	if err != nil {
+		return nil, err
+	}
+	defer closeResponseBody(body)
+
+	var data []models.CardResponse
+	err = json.NewDecoder(body).Decode(&data)
+	return data, err
+}
+
+func (c HTTPKeeperClient) GetCardByID(id string) (models.CardResponse, error) {
+	var data models.CardResponse
+	body, err := c.getDataByID(SCard, id)
+	if err != nil {
+		return data, err
+	}
+	defer closeResponseBody(body)
+
+	err = json.NewDecoder(body).Decode(&data)
+	return data, err
+}
+
+func (c HTTPKeeperClient) StoreCard(name, number, holder, expDate, cvv, note string) (string, error) {
+	return c.storeData(SCard, models.CardRequest{
+		Name:    name,
+		Number:  number,
+		Holder:  holder,
+		ExpDate: expDate,
+		CVV:     cvv,
+		Note:    note,
 	})
 }
 

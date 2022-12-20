@@ -16,25 +16,25 @@ func main() {
 		log.Error(err)
 	}
 
-	id, err := c.StoreText("test", "test", "note")
+	id, err := c.StoreCard("test", "test", "test", "01/21", "123", "note")
 	if err != nil {
 		log.Error(err)
 	}
 	log.Info(id)
 
-	bin, err := c.GetTextByID(id)
+	bin, err := c.GetCardByID(id)
 	if err != nil {
 		log.Error(err)
 	}
 	log.Info(bin)
 
-	bins, err := c.GetAllTexts()
+	bins, err := c.GetAllCards()
 	if err != nil {
 		log.Error(err)
 	}
 	log.Info(bins)
 
-	if err = c.DeleteText(id); err != nil {
+	if err = c.DeleteCard(id); err != nil {
 		log.Error(err)
 	}
 
