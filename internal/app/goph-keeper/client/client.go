@@ -12,6 +12,7 @@ type KeeperClient interface {
 	AuthClient
 	BinaryClient
 	CardClient
+	PasswordClient
 	TextClient
 }
 
@@ -33,6 +34,13 @@ type CardClient interface {
 	GetAllCards() ([]models.CardResponse, error)
 	GetCardByID(id string) (models.CardResponse, error)
 	StoreCard(name, number, holder, expDate, cvv, note string) (string, error)
+}
+
+type PasswordClient interface {
+	DeletePassword(id string) error
+	GetAllPasswords() ([]models.PasswordResponse, error)
+	GetPasswordByID(id string) (models.PasswordResponse, error)
+	StorePassword(name, user, password, note string) (string, error)
 }
 
 type TextClient interface {

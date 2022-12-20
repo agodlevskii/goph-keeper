@@ -214,6 +214,43 @@ func (c HTTPKeeperClient) StoreCard(name, number, holder, expDate, cvv, note str
 	})
 }
 
+func (c HTTPKeeperClient) DeletePassword(id string) error {
+	return c.deleteData(SPassword, id)
+}
+
+func (c HTTPKeeperClient) GetAllPasswords() ([]models.PasswordResponse, error) {
+	body, err := c.getAllData(SPassword)
+	if err != nil {
+		return nil, err
+	}
+	defer closeResponseBody(body)
+
+	var data []models.PasswordResponse
+	err = json.NewDecoder(body).Decode(&data)
+	return data, err
+}
+
+func (c HTTPKeeperClient) GetPasswordByID(id string) (models.PasswordResponse, error) {
+	var data models.PasswordResponse
+	body, err := c.getDataByID(SPassword, id)
+	if err != nil {
+		return data, err
+	}
+	defer closeResponseBody(body)
+
+	err = json.NewDecoder(body).Decode(&data)
+	return data, err
+}
+
+func (c HTTPKeeperClient) StorePassword(name, user, password, note string) (string, error) {
+	return c.storeData(SPassword, models.PasswordRequest{
+		Name:     name,
+		User:     user,
+		Password: password,
+		Note:     note,
+	})
+}
+
 func (c HTTPKeeperClient) deleteData(url, id string) error {
 	url += id
 	_, err := http.NewRequest(http.MethodDelete, url, nil)

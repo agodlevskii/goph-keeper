@@ -16,25 +16,25 @@ func main() {
 		log.Error(err)
 	}
 
-	id, err := c.StoreCard("test", "test", "test", "01/21", "123", "note")
+	id, err := c.StorePassword("test", "test", "test", "note")
 	if err != nil {
 		log.Error(err)
 	}
 	log.Info(id)
 
-	bin, err := c.GetCardByID(id)
+	bin, err := c.GetPasswordByID(id)
 	if err != nil {
 		log.Error(err)
 	}
 	log.Info(bin)
 
-	bins, err := c.GetAllCards()
+	bins, err := c.GetAllPasswords()
 	if err != nil {
 		log.Error(err)
 	}
 	log.Info(bins)
 
-	if err = c.DeleteCard(id); err != nil {
+	if err = c.DeletePassword(id); err != nil {
 		log.Error(err)
 	}
 
