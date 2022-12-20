@@ -10,14 +10,18 @@ import (
 var secret = []byte("j6hsdQ$pj9_ymLQ0")
 
 var (
-	ErrTokenExpired = errors.New("jwt: token is expired")
+	ErrTokenExpired = errors.New("jwt: token expired")
 	ErrTokenSigning = errors.New("jwt: unexpected token signing method")
 	ErrTokenClaims  = errors.New("jwt: failed to extract claims from a token")
 )
 
-func EncodeToken(uid string) (string, error) {
+func EncodeToken(uid string, expTime time.Duration) (string, error) {
+	if expTime == 0 {
+		expTime = time.Hour * 12
+	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"exp": time.Now().Add(time.Hour * 12).Unix(),
+		"exp": time.Now().Add(expTime).Unix(),
 		"sub": uid,
 	})
 
@@ -35,6 +39,9 @@ func GetUserIDFromToken(token string) (string, error) {
 func IsTokenExpired(token string) (bool, error) {
 	claims, err := getClaims(token)
 	if err != nil {
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return true, ErrTokenExpired
+		}
 		return true, err
 	}
 	return !claims.VerifyExpiresAt(jwt.TimeFunc().Unix(), true), nil
