@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/models"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/models"
 )
 
 type KeeperClientConfig interface {

@@ -15,3 +15,7 @@ type PasswordResponse struct {
 	Password string `json:"password"`
 	Note     string `json:"note"`
 }
+
+func (c PasswordResponse) TableRow() []string {
+	return []string{c.ID, c.Name, c.User, c.Password, c.Note}
+}

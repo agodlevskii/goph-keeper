@@ -13,7 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/client/config"
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/models"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/models"
 	"github.com/agodlevskii/goph-keeper/internal/pkg/cert"
 )
 
@@ -28,6 +28,8 @@ const (
 	SPassword string = "/storage/password/"
 	SText     string = "/storage/text/"
 )
+
+var ErrUnauthorized = errors.New("incorrect username or password")
 
 func NewHTTPClient() (HTTPKeeperClient, error) {
 	caCertPool, err := cert.GetCertificatePool()
@@ -72,6 +74,9 @@ func (c HTTPKeeperClient) Login(user, password string) error {
 		Password: password,
 	})
 	if err != nil {
+		if res.StatusCode == http.StatusUnauthorized {
+			return ErrUnauthorized
+		}
 		return err
 	}
 	defer closeResponseBody(res.Body)
@@ -306,8 +311,9 @@ func (c HTTPKeeperClient) makeRequest(method, url string, data any) (*http.Respo
 	if err != nil {
 		return nil, err
 	}
+
 	if res.StatusCode != 200 {
-		return nil, errors.New("error")
+		return res, errors.New("response code")
 	}
 	return res, err
 }

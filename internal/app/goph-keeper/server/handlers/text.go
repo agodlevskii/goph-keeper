@@ -5,9 +5,10 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/models"
+
 	"github.com/go-chi/chi/v5"
 
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/models"
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services"
 )
 

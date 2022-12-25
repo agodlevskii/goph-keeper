@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/models"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/models"
+
 	"github.com/agodlevskii/goph-keeper/internal/pkg/services/auth"
 	"github.com/agodlevskii/goph-keeper/internal/pkg/services/session"
 	"github.com/agodlevskii/goph-keeper/internal/pkg/services/user"
