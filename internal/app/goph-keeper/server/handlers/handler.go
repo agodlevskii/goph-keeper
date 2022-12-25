@@ -4,48 +4,49 @@ import (
 	"context"
 	"net/http"
 
+	models2 "github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/models"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/models"
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services"
 	"github.com/agodlevskii/goph-keeper/internal/pkg/services/data"
 )
 
 type IAuthService interface {
 	Authorize(token string) (string, error)
-	Login(ctx context.Context, cid string, user models.UserRequest) (string, string, error)
+	Login(ctx context.Context, cid string, user models2.UserRequest) (string, string, error)
 	Logout(ctx context.Context, cid string) (bool, error)
-	Register(ctx context.Context, user models.UserRequest) error
+	Register(ctx context.Context, user models2.UserRequest) error
 }
 
 type IBinaryService interface {
 	DeleteBinary(ctx context.Context, uid, id string) error
-	GetAllBinaries(ctx context.Context, uid string) ([]models.BinaryResponse, error)
-	GetBinaryByID(ctx context.Context, uid, id string) (models.BinaryResponse, error)
-	StoreBinary(ctx context.Context, uid string, data models.BinaryRequest) (string, error)
+	GetAllBinaries(ctx context.Context, uid string) ([]models2.BinaryResponse, error)
+	GetBinaryByID(ctx context.Context, uid, id string) (models2.BinaryResponse, error)
+	StoreBinary(ctx context.Context, uid string, data models2.BinaryRequest) (string, error)
 }
 
 type ICardService interface {
 	DeleteCard(ctx context.Context, uid, id string) error
-	GetAllCards(ctx context.Context, uid string) ([]models.CardResponse, error)
-	GetCardByID(ctx context.Context, uid, id string) (models.CardResponse, error)
-	StoreCard(ctx context.Context, uid string, data models.CardRequest) (string, error)
+	GetAllCards(ctx context.Context, uid string) ([]models2.CardResponse, error)
+	GetCardByID(ctx context.Context, uid, id string) (models2.CardResponse, error)
+	StoreCard(ctx context.Context, uid string, data models2.CardRequest) (string, error)
 }
 
 type IPasswordService interface {
 	DeletePassword(ctx context.Context, uid, id string) error
-	GetAllPasswords(ctx context.Context, uid string) ([]models.PasswordResponse, error)
-	GetPasswordByID(ctx context.Context, uid, id string) (models.PasswordResponse, error)
-	StorePassword(ctx context.Context, uid string, data models.PasswordRequest) (string, error)
+	GetAllPasswords(ctx context.Context, uid string) ([]models2.PasswordResponse, error)
+	GetPasswordByID(ctx context.Context, uid, id string) (models2.PasswordResponse, error)
+	StorePassword(ctx context.Context, uid string, data models2.PasswordRequest) (string, error)
 }
 
 type ITextService interface {
 	DeleteText(ctx context.Context, uid, id string) error
-	GetAllTexts(ctx context.Context, uid string) ([]models.TextResponse, error)
-	GetTextByID(ctx context.Context, uid, id string) (models.TextResponse, error)
-	StoreText(ctx context.Context, uid string, data models.TextRequest) (string, error)
+	GetAllTexts(ctx context.Context, uid string) ([]models2.TextResponse, error)
+	GetTextByID(ctx context.Context, uid, id string) (models2.TextResponse, error)
+	StoreText(ctx context.Context, uid string, data models2.TextRequest) (string, error)
 }
 
 type Handler struct {

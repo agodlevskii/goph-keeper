@@ -13,3 +13,7 @@ type TextResponse struct {
 	Data string `json:"data"`
 	Note string `json:"note"`
 }
+
+func (t TextResponse) TableRow() []string {
+	return []string{t.ID, t.Name, t.Data, t.Note}
+}
