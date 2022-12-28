@@ -2,12 +2,18 @@ package client
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
+
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/client/config"
 
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/models"
 )
 
 type KeeperClientConfig interface {
 	GetAPIAddress() string
+	GetCACertPool() (*x509.CertPool, error)
+	GetCertificate() (tls.Certificate, error)
 }
 
 type KeeperClient interface {
@@ -52,6 +58,6 @@ type TextClient interface {
 	StoreText(ctx context.Context, name, data, note string) (string, error)
 }
 
-func NewClient() (KeeperClient, error) {
-	return NewHTTPClient()
+func NewClient(cfg *config.ClientConfig) (KeeperClient, error) {
+	return NewHTTPClient(cfg)
 }

@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"errors"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/client/config"
 	"strings"
 	"time"
 
@@ -27,7 +28,8 @@ type AppCLI struct {
 }
 
 func NewCLI() (*AppCLI, error) {
-	c, err := client.NewClient()
+	cfg := config.New(config.WithEnv(), config.WithFile())
+	c, err := client.NewClient(cfg)
 	if err != nil {
 		return nil, err
 	}

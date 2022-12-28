@@ -1,7 +1,10 @@
 package config
 
 import (
+	"crypto/x509"
 	"fmt"
+
+	"github.com/agodlevskii/goph-keeper/internal/pkg/cert"
 
 	log "github.com/sirupsen/logrus"
 
@@ -22,6 +25,11 @@ type ServerConfig struct {
 		User     string `json:"user" yaml:"user" env:"DB_USER"`
 		Password string `json:"password" yaml:"password" env:"DB_PASSWORD"`
 	} `json:"database" yaml:"database"`
+	Cert struct {
+		CA   string `json:"ca" yaml:"ca" env:"CA_PATH"`
+		Cert string `json:"cert" yaml:"cert" env:"SERVER_CERT_PATH"`
+		Key  string `json:"key" yaml:"key" env:"SERVER_KEY_PATH"`
+	} `json:"cert" yaml:"cert"`
 }
 
 func New(opts ...func(*ServerConfig)) *ServerConfig {
@@ -65,4 +73,12 @@ func (c *ServerConfig) GetServerAddress() string {
 
 func (c *ServerConfig) IsServerSecure() bool {
 	return c.Server.Secure
+}
+
+func (c *ServerConfig) GetCACertPool() (*x509.CertPool, error) {
+	return cert.GetCertificatePool(c.Cert.Cert)
+}
+
+func (c *ServerConfig) GetCertificatePaths() []string {
+	return []string{c.Cert.Cert, c.Cert.Key}
 }

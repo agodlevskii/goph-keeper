@@ -15,7 +15,6 @@ import (
 
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/client/config"
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/models"
-	"github.com/agodlevskii/goph-keeper/internal/pkg/cert"
 )
 
 type HTTPKeeperClient struct {
@@ -32,13 +31,13 @@ const (
 
 var ErrUnauthorized = errors.New("incorrect username or password")
 
-func NewHTTPClient() (HTTPKeeperClient, error) {
-	caCertPool, err := cert.GetCertificatePool()
+func NewHTTPClient(cfg *config.ClientConfig) (HTTPKeeperClient, error) {
+	caCertPool, err := cfg.GetCACertPool()
 	if err != nil {
 		return HTTPKeeperClient{}, err
 	}
 
-	c, err := cert.GetClientCertificate()
+	c, err := cfg.GetCertificate()
 	if err != nil {
 		return HTTPKeeperClient{}, err
 	}
@@ -48,7 +47,6 @@ func NewHTTPClient() (HTTPKeeperClient, error) {
 		return HTTPKeeperClient{}, err
 	}
 
-	cfg := getClientConfig()
 	uri, err := url.Parse(cfg.GetAPIAddress())
 	if err != nil {
 		return HTTPKeeperClient{}, err
@@ -319,10 +317,6 @@ func (c HTTPKeeperClient) makeRequest(ctx context.Context, method, url string, d
 		return res, errors.New("response code")
 	}
 	return res, err
-}
-
-func getClientConfig() KeeperClientConfig {
-	return config.New(config.WithEnv(), config.WithFile())
 }
 
 func closeResponseBody(b io.Closer) {
