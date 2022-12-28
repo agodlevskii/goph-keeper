@@ -30,7 +30,10 @@ func (v *Binary) getItem() error {
 		return err
 	}
 
-	data, err := v.keeper.GetBinaryByID(id)
+	ctx, cancel := getCtxTimeout()
+	defer cancel()
+
+	data, err := v.keeper.GetBinaryByID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -40,7 +43,10 @@ func (v *Binary) getItem() error {
 }
 
 func (v *Binary) getItems() error {
-	items, err := v.keeper.GetAllBinaries()
+	ctx, cancel := getCtxTimeout()
+	defer cancel()
+
+	items, err := v.keeper.GetAllBinaries(ctx)
 	if err != nil {
 		return err
 	}
@@ -65,7 +71,10 @@ func (v *Binary) saveItem() error {
 		return err
 	}
 
-	_, err = v.keeper.StoreBinary(name, data, note)
+	ctx, cancel := getCtxTimeout()
+	defer cancel()
+
+	_, err = v.keeper.StoreBinary(ctx, name, data, note)
 	return err
 }
 
@@ -75,7 +84,10 @@ func (v *Binary) deleteItem() error {
 		return err
 	}
 
-	if err = v.keeper.DeleteBinary(id); err != nil {
+	ctx, cancel := getCtxTimeout()
+	defer cancel()
+
+	if err = v.keeper.DeleteBinary(ctx, id); err != nil {
 		return err
 	}
 	fmt.Print("Binary item has been deleted successfully.")

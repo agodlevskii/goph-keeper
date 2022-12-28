@@ -1,8 +1,10 @@
 package cli
 
 import (
+	"context"
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/manifoldco/promptui"
 	log "github.com/sirupsen/logrus"
@@ -42,10 +44,9 @@ func NewCLI() (*AppCLI, error) {
 func (app *AppCLI) Start() error {
 	if err := app.login(); err != nil {
 		if errors.Is(err, client.ErrUnauthorized) {
-			ep := promptui.Prompt{Label: "Incorrect name or password. Would you like to try again? (y/N)"}
-			if res, rErr := ep.Run(); rErr != nil {
+			if retry, rErr := inputs.LoginRetry(); rErr != nil {
 				return rErr
-			} else if len(res) == 0 || strings.ToLower(res)[:1] != "n" {
+			} else if strings.ToLower(retry)[:1] != "n" {
 				return app.Start()
 			}
 		}
@@ -65,7 +66,9 @@ func (app *AppCLI) login() error {
 		return err
 	}
 
-	return app.client.Login(user, password)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*2)
+	defer cancel()
+	return app.client.Login(ctx, user, password)
 }
 
 func (app *AppCLI) mainMenu() error {

@@ -31,7 +31,10 @@ func (v *Card) getItem() error {
 		return err
 	}
 
-	data, err := v.keeper.GetCardByID(id)
+	ctx, cancel := getCtxTimeout()
+	defer cancel()
+
+	data, err := v.keeper.GetCardByID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -41,7 +44,10 @@ func (v *Card) getItem() error {
 }
 
 func (v *Card) getItems() error {
-	items, err := v.keeper.GetAllCards()
+	ctx, cancel := getCtxTimeout()
+	defer cancel()
+
+	items, err := v.keeper.GetAllCards(ctx)
 	if err != nil {
 		return err
 	}
@@ -75,7 +81,10 @@ func (v *Card) saveItem() error {
 		return err
 	}
 
-	_, err = v.keeper.StoreCard(name, number, holder, expDate, cvv, note)
+	ctx, cancel := getCtxTimeout()
+	defer cancel()
+
+	_, err = v.keeper.StoreCard(ctx, name, number, holder, expDate, cvv, note)
 	return err
 }
 
@@ -85,7 +94,10 @@ func (v *Card) deleteItem() error {
 		return err
 	}
 
-	if err = v.keeper.DeleteCard(id); err != nil {
+	ctx, cancel := getCtxTimeout()
+	defer cancel()
+
+	if err = v.keeper.DeleteCard(ctx, id); err != nil {
 		return err
 	}
 	fmt.Print("Card item has been deleted successfully.")

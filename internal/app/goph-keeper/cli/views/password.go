@@ -31,7 +31,10 @@ func (v *Password) getItem() error {
 		return err
 	}
 
-	data, err := v.keeper.GetPasswordByID(id)
+	ctx, cancel := getCtxTimeout()
+	defer cancel()
+
+	data, err := v.keeper.GetPasswordByID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -41,7 +44,10 @@ func (v *Password) getItem() error {
 }
 
 func (v *Password) getItems() error {
-	items, err := v.keeper.GetAllPasswords()
+	ctx, cancel := getCtxTimeout()
+	defer cancel()
+
+	items, err := v.keeper.GetAllPasswords(ctx)
 	if err != nil {
 		return err
 	}
@@ -70,7 +76,10 @@ func (v *Password) saveItem() error {
 		return err
 	}
 
-	_, err = v.keeper.StorePassword(name, user, password, note)
+	ctx, cancel := getCtxTimeout()
+	defer cancel()
+
+	_, err = v.keeper.StorePassword(ctx, name, user, password, note)
 	return err
 }
 
@@ -80,7 +89,10 @@ func (v *Password) deleteItem() error {
 		return err
 	}
 
-	if err = v.keeper.DeletePassword(id); err != nil {
+	ctx, cancel := getCtxTimeout()
+	defer cancel()
+
+	if err = v.keeper.DeletePassword(ctx, id); err != nil {
 		return err
 	}
 	fmt.Print("Password item has been deleted successfully.")

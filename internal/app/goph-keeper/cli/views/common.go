@@ -1,8 +1,10 @@
 package views
 
 import (
+	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -75,4 +77,8 @@ func showMenu(v viewer, opt MenuOption) error {
 		log.Error(err)
 	}
 	return showMenu(v, opt)
+}
+
+func getCtxTimeout() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), time.Minute*2)
 }

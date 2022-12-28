@@ -29,7 +29,10 @@ func (v *Text) getItem() error {
 		return err
 	}
 
-	data, err := v.keeper.GetTextByID(id)
+	ctx, cancel := getCtxTimeout()
+	defer cancel()
+
+	data, err := v.keeper.GetTextByID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -39,7 +42,10 @@ func (v *Text) getItem() error {
 }
 
 func (v *Text) getItems() error {
-	items, err := v.keeper.GetAllTexts()
+	ctx, cancel := getCtxTimeout()
+	defer cancel()
+
+	items, err := v.keeper.GetAllTexts(ctx)
 	if err != nil {
 		return err
 	}
@@ -61,7 +67,10 @@ func (v *Text) saveItem() error {
 		return err
 	}
 
-	_, err = v.keeper.StoreText(name, text, note)
+	ctx, cancel := getCtxTimeout()
+	defer cancel()
+
+	_, err = v.keeper.StoreText(ctx, name, text, note)
 	return err
 }
 
@@ -71,7 +80,10 @@ func (v *Text) deleteItem() error {
 		return err
 	}
 
-	if err = v.keeper.DeleteText(id); err != nil {
+	ctx, cancel := getCtxTimeout()
+	defer cancel()
+
+	if err = v.keeper.DeleteText(ctx, id); err != nil {
 		return err
 	}
 	fmt.Print("Text item has been deleted successfully.")
