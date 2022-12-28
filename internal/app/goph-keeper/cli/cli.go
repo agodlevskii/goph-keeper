@@ -3,9 +3,10 @@ package cli
 import (
 	"context"
 	"errors"
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/client/config"
 	"strings"
 	"time"
+
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/client/config"
 
 	"github.com/manifoldco/promptui"
 	log "github.com/sirupsen/logrus"
