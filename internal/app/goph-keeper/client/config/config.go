@@ -5,10 +5,9 @@ import (
 	"crypto/x509"
 	"fmt"
 
-	"github.com/agodlevskii/goph-keeper/internal/pkg/cert"
-
 	log "github.com/sirupsen/logrus"
 
+	"github.com/agodlevskii/goph-keeper/internal/pkg/cert"
 	"github.com/agodlevskii/goph-keeper/internal/pkg/configs"
 )
 

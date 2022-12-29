@@ -6,7 +6,6 @@ import (
 	"crypto/x509"
 
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/client/config"
-
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/models"
 )
 

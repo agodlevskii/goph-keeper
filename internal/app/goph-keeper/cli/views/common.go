@@ -6,9 +6,8 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/manifoldco/promptui"
+	log "github.com/sirupsen/logrus"
 )
 
 type viewer interface {
@@ -80,5 +79,5 @@ func showMenu(v viewer, opt MenuOption) error {
 }
 
 func getCtxTimeout() (context.Context, context.CancelFunc) {
-	return context.WithTimeout(context.Background(), time.Minute*2)
+	return context.WithTimeout(context.Background(), time.Second*30)
 }

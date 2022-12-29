@@ -6,14 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/client/config"
-
 	"github.com/manifoldco/promptui"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/cli/inputs"
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/cli/views"
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/client"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/client/config"
 )
 
 type View interface {
@@ -69,7 +68,7 @@ func (app *AppCLI) login() error {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*2)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 	return app.client.Login(ctx, user, password)
 }
