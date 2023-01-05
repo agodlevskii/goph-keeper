@@ -20,6 +20,7 @@ type Service struct {
 	db IRepository
 }
 
+// NewService returns an instance of the Service with the associated repository.
 func NewService(repoURL string) (Service, error) {
 	db, err := NewRepo(repoURL)
 	return Service{db: db}, err
@@ -27,6 +28,8 @@ func NewService(repoURL string) (Service, error) {
 
 var ErrCredMissing = errors.New("the user is missing one or more required fields")
 
+// AddUser hashes the passed user's password and stores a new user.
+// If the user with the specified name already exists, it returns an error.
 func (s Service) AddUser(ctx context.Context, user User) error {
 	if user.Name == "" || user.Password == "" {
 		return ErrCredMissing
@@ -49,6 +52,8 @@ func (s Service) AddUser(ctx context.Context, user User) error {
 	return err
 }
 
+// GetUser gathers the user by its name and compares the passed and the stored passwords.
+// If the passwords don't match, or user is not found in the repository, the methods returns an error.
 func (s Service) GetUser(ctx context.Context, user User) (User, error) {
 	su, err := s.db.GetUserByName(ctx, strings.ToLower(user.Name))
 	if err != nil {

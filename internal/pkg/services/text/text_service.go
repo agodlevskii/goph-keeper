@@ -17,10 +17,13 @@ var (
 	ErrNotFound = errors.New("requested text data not found")
 )
 
+// NewService returns an instance of the Service with pre-defined data microservice.
 func NewService(dataService data.Service) Service {
 	return Service{dataService: dataService}
 }
 
+// DeleteText removes the stored data with the unique ID.
+// The method removes the data of the specified user only.
 func (s Service) DeleteText(ctx context.Context, uid, id string) error {
 	if err := s.dataService.DeleteSecureData(ctx, uid, id); err != nil {
 		if errors.Is(err, data.ErrNotFound) {
@@ -31,6 +34,7 @@ func (s Service) DeleteText(ctx context.Context, uid, id string) error {
 	return nil
 }
 
+// GetAllTexts returns all the user's stored texts.
 func (s Service) GetAllTexts(ctx context.Context, uid string) ([]Text, error) {
 	if uid == "" {
 		return nil, ErrNotFound
@@ -57,6 +61,8 @@ func (s Service) GetAllTexts(ctx context.Context, uid string) ([]Text, error) {
 	return texts, nil
 }
 
+// GetTextByID returns the stored data by the unique ID.
+// The method returns the data of the specified user only.
 func (s Service) GetTextByID(ctx context.Context, uid, id string) (Text, error) {
 	if uid == "" || id == "" {
 		return Text{}, ErrNotFound
@@ -72,6 +78,7 @@ func (s Service) GetTextByID(ctx context.Context, uid, id string) (Text, error) 
 	return s.getTextFromSecureData(sd)
 }
 
+// StoreText stores the original text via the associated data microservice.
 func (s Service) StoreText(ctx context.Context, text Text) (string, error) {
 	return s.dataService.StoreSecureDataFromPayload(ctx, text.UID, text, data.SText)
 }

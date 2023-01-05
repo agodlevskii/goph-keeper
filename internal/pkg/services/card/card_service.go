@@ -17,10 +17,13 @@ var (
 	ErrNotFound = errors.New("requested card data not found")
 )
 
+// NewService returns an instance of the Service with pre-defined data microservice.
 func NewService(dataService data.Service) Service {
 	return Service{dataService: dataService}
 }
 
+// DeleteCard removes the stored data with the unique ID.
+// The method removes the data of the specified user only.
 func (s Service) DeleteCard(ctx context.Context, uid, id string) error {
 	if uid == "" || id == "" {
 		return ErrNotFound
@@ -33,6 +36,7 @@ func (s Service) DeleteCard(ctx context.Context, uid, id string) error {
 	return err
 }
 
+// GetAllCards returns all the user's stored cards.
 func (s Service) GetAllCards(ctx context.Context, uid string) ([]Card, error) {
 	if uid == "" {
 		return nil, ErrNotFound
@@ -59,6 +63,8 @@ func (s Service) GetAllCards(ctx context.Context, uid string) ([]Card, error) {
 	return cards, nil
 }
 
+// GetCardByID returns the stored data by the unique ID.
+// The method returns the data of the specified user only.
 func (s Service) GetCardByID(ctx context.Context, uid, id string) (Card, error) {
 	d, err := s.dataService.GetDataByID(ctx, uid, id)
 	if err != nil {
@@ -70,6 +76,7 @@ func (s Service) GetCardByID(ctx context.Context, uid, id string) (Card, error) 
 	return s.getCardFromSecureData(d)
 }
 
+// StoreCard stores the original card via the associated data microservice.
 func (s Service) StoreCard(ctx context.Context, card Card) (string, error) {
 	return s.dataService.StoreSecureDataFromPayload(ctx, card.UID, card, data.SCard)
 }

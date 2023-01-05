@@ -25,11 +25,14 @@ type Service struct {
 	db IRepository
 }
 
+// NewService returns an instance of the Service with the associated repository.
 func NewService(repoURL string) (Service, error) {
 	db, err := NewRepo(repoURL)
 	return Service{db: db}, err
 }
 
+// RestoreSession gathers the stored client-associated token.
+// If the token is expired, the method deletes it from the repository and returns an error.
 func (s Service) RestoreSession(ctx context.Context, cid string) (string, error) {
 	t, err := s.db.GetSession(ctx, cid)
 	if err != nil {
@@ -47,15 +50,18 @@ func (s Service) RestoreSession(ctx context.Context, cid string) (string, error)
 	return t, nil
 }
 
+// StoreSession generates new client ID and associates the passed token with it.
 func (s Service) StoreSession(ctx context.Context, token string) (string, error) {
 	cid := generateClientID()
 	return cid, s.db.StoreSession(ctx, cid, token)
 }
 
+// DeleteSession deletes the client-associated session.
 func (s Service) DeleteSession(ctx context.Context, cid string) error {
 	return s.db.DeleteSession(ctx, cid)
 }
 
+// GenerateToken generates a new JWT token with the specified expiry time.
 func (s Service) GenerateToken(uid string) (string, error) {
 	if uid == "" {
 		return "", ErrEmptyUID
@@ -63,6 +69,7 @@ func (s Service) GenerateToken(uid string) (string, error) {
 	return jwt.EncodeToken(uid, 0)
 }
 
+// GetUIDFromToken parses the token string and returns the UID from its claims.
 func (s Service) GetUIDFromToken(token string) (string, error) {
 	if token == "" {
 		return "", ErrEmptyToken
@@ -70,6 +77,7 @@ func (s Service) GetUIDFromToken(token string) (string, error) {
 	return jwt.GetUserIDFromToken(token)
 }
 
+// IsTokenExpired checks if the token had expired.
 func (s Service) IsTokenExpired(token string) (bool, error) {
 	if exp, err := jwt.IsTokenExpired(token); err != nil || exp {
 		if err != nil && !errors.Is(err, jwt.ErrTokenExpired) {
