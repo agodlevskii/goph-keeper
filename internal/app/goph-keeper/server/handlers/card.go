@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/models"
@@ -18,7 +17,7 @@ func (h Handler) DeleteCard() http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 
 		if err := h.cardService.DeleteCard(r.Context(), uid, id); err != nil {
-			handleHTTPError(w, err, http.StatusInternalServerError)
+			handleHTTPError(w, err, h.getErrorCode(err))
 			return
 		}
 
@@ -32,12 +31,12 @@ func (h Handler) GetAllCards() http.HandlerFunc {
 		uid := r.Context().Value(uidKey).(string)
 		cs, err := h.cardService.GetAllCards(r.Context(), uid)
 		if err != nil {
-			handleHTTPError(w, err, http.StatusInternalServerError)
+			handleHTTPError(w, err, h.getErrorCode(err))
 			return
 		}
 
 		if err = json.NewEncoder(w).Encode(cs); err != nil {
-			handleHTTPError(w, err, http.StatusInternalServerError)
+			handleHTTPError(w, err, h.getErrorCode(err))
 		}
 	}
 }
@@ -48,8 +47,8 @@ func (h Handler) GetCardByID() http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 
 		c, err := h.cardService.GetCardByID(r.Context(), uid, id)
-		if err != nil && errors.Is(err, services.ErrCardNotFound) {
-			handleHTTPError(w, err, http.StatusInternalServerError)
+		if err != nil {
+			handleHTTPError(w, err, h.getErrorCode(err))
 			return
 		}
 
@@ -60,7 +59,7 @@ func (h Handler) GetCardByID() http.HandlerFunc {
 
 		w.WriteHeader(http.StatusOK)
 		if err = json.NewEncoder(w).Encode(c); err != nil {
-			handleHTTPError(w, err, http.StatusInternalServerError)
+			handleHTTPError(w, err, h.getErrorCode(err))
 		}
 	}
 }
@@ -77,7 +76,7 @@ func (h Handler) StoreCard() http.HandlerFunc {
 
 		id, err := h.cardService.StoreCard(r.Context(), uid, req)
 		if err != nil {
-			handleHTTPError(w, err, http.StatusInternalServerError)
+			handleHTTPError(w, err, h.getErrorCode(err))
 			return
 		}
 

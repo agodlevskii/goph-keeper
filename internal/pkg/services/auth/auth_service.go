@@ -14,7 +14,10 @@ type Service struct {
 	userService    user.Service
 }
 
-var ErrWrongCredential = errors.New("invalid username or password")
+var (
+	ErrSessionExpired  = errors.New("the session has expired, please re-login")
+	ErrWrongCredential = errors.New("invalid username or password")
+)
 
 func NewService(ss session.Service, us user.Service) Service {
 	return Service{
@@ -24,7 +27,14 @@ func NewService(ss session.Service, us user.Service) Service {
 }
 
 func (s Service) Authorize(token string) (string, error) {
+	if token == "" {
+		return "", ErrWrongCredential
+	}
+
 	if exp, err := s.sessionService.IsTokenExpired(token); err != nil || exp {
+		if errors.Is(err, session.ErrTokenExpired) || exp {
+			return "", ErrSessionExpired
+		}
 		return "", err
 	}
 	return s.sessionService.GetUIDFromToken(token)
@@ -63,7 +73,13 @@ func (s Service) Login(ctx context.Context, cid string, req Payload) (string, st
 }
 
 func (s Service) Logout(ctx context.Context, cid string) (bool, error) {
-	if err := s.sessionService.DeleteSession(ctx, cid); err != nil && !errors.Is(err, session.ErrNotFound) {
+	if cid == "" {
+		return false, ErrWrongCredential
+	}
+	if err := s.sessionService.DeleteSession(ctx, cid); err != nil {
+		if errors.Is(err, session.ErrNotFound) {
+			return false, ErrWrongCredential
+		}
 		return false, err
 	}
 	return true, nil

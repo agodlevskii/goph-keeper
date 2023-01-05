@@ -31,7 +31,6 @@ func (s Service) AddUser(ctx context.Context, user User) error {
 	if user.Name == "" || user.Password == "" {
 		return ErrCredMissing
 	}
-
 	userExist, err := s.doesUserExist(ctx, user)
 	if err != nil {
 		return err
@@ -66,9 +65,9 @@ func (s Service) GetUser(ctx context.Context, user User) (User, error) {
 }
 
 func (s Service) doesUserExist(ctx context.Context, user User) (bool, error) {
-	su, err := s.GetUser(ctx, user)
-	if err != nil && !errors.Is(err, ErrNotFound) {
-		return false, err
+	su, err := s.db.GetUserByName(ctx, strings.ToLower(user.Name))
+	if errors.Is(err, sql.ErrNoRows) || errors.Is(err, ErrNotFound) {
+		return false, nil
 	}
-	return su.ID != "", nil
+	return su.ID != "", err
 }

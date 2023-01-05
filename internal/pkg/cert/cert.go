@@ -9,7 +9,7 @@ import (
 func GetCertificatePool(path string) (*x509.CertPool, error) {
 	caCert, err := os.ReadFile(path)
 	if err != nil {
-		return &x509.CertPool{}, err
+		return nil, err
 	}
 
 	caCertPool := x509.NewCertPool()

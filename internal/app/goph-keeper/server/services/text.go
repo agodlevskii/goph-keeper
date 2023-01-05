@@ -5,29 +5,40 @@ import (
 	"errors"
 
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/models"
-
-	"github.com/agodlevskii/goph-keeper/internal/pkg/services/text"
-
 	"github.com/agodlevskii/goph-keeper/internal/pkg/services/data"
+	"github.com/agodlevskii/goph-keeper/internal/pkg/services/text"
 )
 
 type TextService struct {
 	textMS text.Service
 }
 
-var ErrNotFound = errors.New("requested text data not found")
+var ErrTextNotFound = errors.New("requested text data not found")
 
 func NewTextService(dataMS data.Service) *TextService {
 	return &TextService{textMS: text.NewService(dataMS)}
 }
 
 func (s *TextService) DeleteText(ctx context.Context, uid, id string) error {
-	return s.textMS.DeleteText(ctx, uid, id)
+	if uid == "" || id == "" {
+		return ErrBadArguments
+	}
+	err := s.textMS.DeleteText(ctx, uid, id)
+	if errors.Is(err, text.ErrNotFound) {
+		return ErrTextNotFound
+	}
+	return err
 }
 
 func (s *TextService) GetAllTexts(ctx context.Context, uid string) ([]models.TextResponse, error) {
+	if uid == "" {
+		return nil, ErrBadArguments
+	}
 	resp, err := s.textMS.GetAllTexts(ctx, uid)
 	if err != nil {
+		if errors.Is(err, text.ErrNotFound) {
+			return nil, ErrTextNotFound
+		}
 		return nil, err
 	}
 
@@ -39,11 +50,23 @@ func (s *TextService) GetAllTexts(ctx context.Context, uid string) ([]models.Tex
 }
 
 func (s *TextService) GetTextByID(ctx context.Context, uid, id string) (models.TextResponse, error) {
+	if uid == "" || id == "" {
+		return models.TextResponse{}, ErrBadArguments
+	}
 	res, err := s.textMS.GetTextByID(ctx, uid, id)
-	return s.getResponseFromModel(res), err
+	if err != nil {
+		if errors.Is(err, text.ErrNotFound) {
+			return models.TextResponse{}, ErrTextNotFound
+		}
+		return models.TextResponse{}, err
+	}
+	return s.getResponseFromModel(res), nil
 }
 
 func (s *TextService) StoreText(ctx context.Context, uid string, req models.TextRequest) (string, error) {
+	if uid == "" || req.Name == "" || req.Data == "" {
+		return "", ErrBadArguments
+	}
 	return s.textMS.StoreText(ctx, s.getModelFromRequest(uid, req))
 }
 

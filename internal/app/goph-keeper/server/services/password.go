@@ -21,12 +21,25 @@ func NewPasswordService(dataMS data.Service) *PasswordService {
 }
 
 func (s *PasswordService) DeletePassword(ctx context.Context, uid, id string) error {
-	return s.passwordMS.DeletePassword(ctx, uid, id)
+	if uid == "" || id == "" {
+		return ErrBadArguments
+	}
+	err := s.passwordMS.DeletePassword(ctx, uid, id)
+	if errors.Is(err, password.ErrNotFound) {
+		return ErrPasswordNotFound
+	}
+	return err
 }
 
 func (s *PasswordService) GetAllPasswords(ctx context.Context, uid string) ([]models.PasswordResponse, error) {
+	if uid == "" {
+		return nil, ErrBadArguments
+	}
 	resp, err := s.passwordMS.GetAllPasswords(ctx, uid)
 	if err != nil {
+		if errors.Is(err, password.ErrNotFound) {
+			return nil, ErrPasswordNotFound
+		}
 		return nil, err
 	}
 
@@ -38,8 +51,17 @@ func (s *PasswordService) GetAllPasswords(ctx context.Context, uid string) ([]mo
 }
 
 func (s *PasswordService) GetPasswordByID(ctx context.Context, uid, id string) (models.PasswordResponse, error) {
+	if uid == "" || id == "" {
+		return models.PasswordResponse{}, ErrBadArguments
+	}
 	res, err := s.passwordMS.GetPasswordByID(ctx, uid, id)
-	return s.getResponseFromModel(res), err
+	if err != nil {
+		if errors.Is(err, password.ErrNotFound) {
+			return models.PasswordResponse{}, ErrPasswordNotFound
+		}
+		return models.PasswordResponse{}, err
+	}
+	return s.getResponseFromModel(res), nil
 }
 
 func (s *PasswordService) StorePassword(ctx context.Context, uid string, req models.PasswordRequest) (string, error) {

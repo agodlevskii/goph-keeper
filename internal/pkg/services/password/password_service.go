@@ -12,17 +12,32 @@ type Service struct {
 	dataService data.Service
 }
 
-var ErrNotFound = errors.New("requested password data not found")
+var (
+	ErrInvalid  = errors.New("passed password data is invalid")
+	ErrNotFound = errors.New("requested password data not found")
+)
 
 func NewService(dataService data.Service) Service {
 	return Service{dataService: dataService}
 }
 
 func (s Service) DeletePassword(ctx context.Context, uid, id string) error {
-	return s.dataService.DeleteSecureData(ctx, uid, id)
+	if uid == "" || id == "" {
+		return ErrNotFound
+	}
+
+	err := s.dataService.DeleteSecureData(ctx, uid, id)
+	if errors.Is(err, data.ErrNotFound) {
+		return ErrNotFound
+	}
+	return err
 }
 
 func (s Service) GetAllPasswords(ctx context.Context, uid string) ([]Password, error) {
+	if uid == "" {
+		return nil, ErrNotFound
+	}
+
 	encPass, err := s.dataService.GetAllDataByType(ctx, uid, data.SPassword)
 	if err != nil {
 		if errors.Is(err, data.ErrNotFound) {
@@ -60,6 +75,10 @@ func (s Service) StorePassword(ctx context.Context, pass Password) (string, erro
 }
 
 func (s Service) getPasswordFromSecureData(d data.SecureData) (Password, error) {
+	if len(d.Data) == 0 {
+		return Password{}, ErrInvalid
+	}
+
 	b, err := s.dataService.GetDataFromBytes(d.Data)
 	if err != nil {
 		return Password{}, err

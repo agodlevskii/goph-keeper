@@ -14,14 +14,14 @@ var (
 )
 
 func CardNumber(num string) error {
-	if ok, err := regexp.MatchString("(\\d{4}( )?){4}", num); err != nil || !ok {
+	if ok, err := regexp.MatchString("^(\\d{4} ?){4}$", num); err != nil || !ok {
 		return ErrCardNumberFormat
 	}
 	return nil
 }
 
 func CardCVV(cvv string) error {
-	if ok, err := regexp.MatchString("\\d{3}", cvv); err != nil || !ok {
+	if ok, err := regexp.MatchString("^\\d{3}$", cvv); err != nil || !ok {
 		return ErrCVVFormat
 	}
 	return nil

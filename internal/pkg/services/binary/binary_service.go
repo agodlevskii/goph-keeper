@@ -22,7 +22,11 @@ func NewService(dataService data.Service) Service {
 }
 
 func (s Service) DeleteBinary(ctx context.Context, uid, id string) error {
-	return s.dataService.DeleteSecureData(ctx, uid, id)
+	err := s.dataService.DeleteSecureData(ctx, uid, id)
+	if errors.Is(err, data.ErrNotFound) {
+		return ErrNotFound
+	}
+	return err
 }
 
 func (s Service) GetAllBinaries(ctx context.Context, uid string) ([]Binary, error) {

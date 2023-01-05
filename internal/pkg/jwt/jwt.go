@@ -16,6 +16,9 @@ var (
 )
 
 func EncodeToken(uid string, expTime time.Duration) (string, error) {
+	if uid == "" {
+		return "", ErrTokenClaims
+	}
 	if expTime == 0 {
 		expTime = time.Hour * 12
 	}
@@ -40,7 +43,7 @@ func IsTokenExpired(token string) (bool, error) {
 	claims, err := getClaims(token)
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {
-			return true, ErrTokenExpired
+			return true, nil
 		}
 		return true, err
 	}

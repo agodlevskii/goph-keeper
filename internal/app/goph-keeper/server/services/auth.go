@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/models"
-
 	"github.com/agodlevskii/goph-keeper/internal/pkg/services/auth"
 	"github.com/agodlevskii/goph-keeper/internal/pkg/services/session"
 	"github.com/agodlevskii/goph-keeper/internal/pkg/services/user"
@@ -32,10 +31,16 @@ func NewAuthService(repoURL string) (*AuthService, error) {
 }
 
 func (s *AuthService) Authorize(token string) (string, error) {
+	if token == "" {
+		return "", ErrBadArguments
+	}
 	return s.authMS.Authorize(token)
 }
 
 func (s *AuthService) Login(ctx context.Context, cid string, user models.UserRequest) (string, string, error) {
+	if user.Name == "" || user.Password == "" {
+		return "", "", ErrBadArguments
+	}
 	token, cid, err := s.authMS.Login(ctx, cid, s.getPayloadFromRequest(user))
 	if err != nil {
 		if errors.Is(err, auth.ErrWrongCredential) {
@@ -47,10 +52,17 @@ func (s *AuthService) Login(ctx context.Context, cid string, user models.UserReq
 }
 
 func (s *AuthService) Logout(ctx context.Context, cid string) (bool, error) {
-	return s.authMS.Logout(ctx, cid)
+	ok, err := s.authMS.Logout(ctx, cid)
+	if errors.Is(err, auth.ErrWrongCredential) {
+		return false, ErrWrongCredential
+	}
+	return ok, err
 }
 
 func (s *AuthService) Register(ctx context.Context, req models.UserRequest) error {
+	if req.Name == "" || req.Password == "" {
+		return ErrBadArguments
+	}
 	return s.authMS.Register(ctx, s.getPayloadFromRequest(req))
 }
 

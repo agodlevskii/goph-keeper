@@ -12,17 +12,32 @@ type Service struct {
 	dataService data.Service
 }
 
-var ErrNotFound = errors.New("requested card data not found")
+var (
+	ErrInvalid  = errors.New("passed card data is invalid")
+	ErrNotFound = errors.New("requested card data not found")
+)
 
 func NewService(dataService data.Service) Service {
 	return Service{dataService: dataService}
 }
 
 func (s Service) DeleteCard(ctx context.Context, uid, id string) error {
-	return s.dataService.DeleteSecureData(ctx, uid, id)
+	if uid == "" || id == "" {
+		return ErrNotFound
+	}
+
+	err := s.dataService.DeleteSecureData(ctx, uid, id)
+	if errors.Is(err, data.ErrNotFound) {
+		return ErrNotFound
+	}
+	return err
 }
 
 func (s Service) GetAllCards(ctx context.Context, uid string) ([]Card, error) {
+	if uid == "" {
+		return nil, ErrNotFound
+	}
+
 	sd, err := s.dataService.GetAllDataByType(ctx, uid, data.SCard)
 	if err != nil {
 		if errors.Is(err, data.ErrNotFound) {
@@ -55,11 +70,15 @@ func (s Service) GetCardByID(ctx context.Context, uid, id string) (Card, error) 
 	return s.getCardFromSecureData(d)
 }
 
-func (s Service) StoreCard(ctx context.Context, uid string, card Card) (string, error) {
-	return s.dataService.StoreSecureDataFromPayload(ctx, uid, card, data.SCard)
+func (s Service) StoreCard(ctx context.Context, card Card) (string, error) {
+	return s.dataService.StoreSecureDataFromPayload(ctx, card.UID, card, data.SCard)
 }
 
 func (s Service) getCardFromSecureData(d data.SecureData) (Card, error) {
+	if len(d.Data) == 0 {
+		return Card{}, ErrInvalid
+	}
+
 	b, err := s.dataService.GetDataFromBytes(d.Data)
 	if err != nil {
 		return Card{}, err

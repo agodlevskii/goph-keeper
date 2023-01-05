@@ -7,7 +7,7 @@ import (
 func Min(limit int) func(v string) error {
 	return func(v string) error {
 		if len(v) < limit {
-			return fmt.Errorf("the value must be at least %d charachers long", limit)
+			return fmt.Errorf("the value must be at least %d characters long", limit)
 		}
 		return nil
 	}
@@ -16,7 +16,7 @@ func Min(limit int) func(v string) error {
 func Max(limit int) func(v string) error {
 	return func(v string) error {
 		if len(v) > limit {
-			return fmt.Errorf("the value is limited to %d charachers", limit)
+			return fmt.Errorf("the value is limited to %d characters", limit)
 		}
 		return nil
 	}

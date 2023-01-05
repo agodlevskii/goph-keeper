@@ -136,7 +136,8 @@ func (c HTTPKeeperClient) GetBinaryByID(ctx context.Context, id string) (models.
 }
 
 func (c HTTPKeeperClient) StoreBinary(ctx context.Context, name string,
-	data []byte, note string) (string, error) {
+	data []byte, note string,
+) (string, error) {
 	return c.storeData(ctx, SBinary, models.BinaryRequest{
 		Name: name,
 		Data: data,
@@ -209,7 +210,8 @@ func (c HTTPKeeperClient) GetCardByID(ctx context.Context, id string) (models.Ca
 }
 
 func (c HTTPKeeperClient) StoreCard(ctx context.Context,
-	name, number, holder, expDate, cvv, note string) (string, error) {
+	name, number, holder, expDate, cvv, note string,
+) (string, error) {
 	return c.storeData(ctx, SCard, models.CardRequest{
 		Name:    name,
 		Number:  number,

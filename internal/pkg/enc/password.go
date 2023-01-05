@@ -1,8 +1,17 @@
 package enc
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"errors"
+
+	"golang.org/x/crypto/bcrypt"
+)
+
+var ErrPasswordLength = errors.New("enc: the password is missing")
 
 func HashPassword(s string) (string, error) {
+	if len(s) == 0 {
+		return "", ErrPasswordLength
+	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(s), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err

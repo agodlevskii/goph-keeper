@@ -8,7 +8,6 @@ import (
 
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/models"
 
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services"
 	"github.com/agodlevskii/goph-keeper/internal/pkg/services/user"
 )
 
@@ -47,11 +46,7 @@ func (h Handler) Login() http.HandlerFunc {
 
 		token, cid, err := h.authService.Login(r.Context(), cid, req)
 		if err != nil {
-			if errors.Is(err, services.ErrWrongCredential) {
-				handleHTTPError(w, err, http.StatusUnauthorized)
-			} else {
-				handleHTTPError(w, err, http.StatusInternalServerError)
-			}
+			handleHTTPError(w, err, h.getErrorCode(err))
 			return
 		}
 
@@ -69,7 +64,7 @@ func (h Handler) Logout() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cid := getClientID(r)
 		if loggedOut, err := h.authService.Logout(r.Context(), cid); !loggedOut || err != nil {
-			handleHTTPError(w, err, http.StatusInternalServerError)
+			handleHTTPError(w, err, h.getErrorCode(err))
 			return
 		}
 
@@ -90,7 +85,7 @@ func (h Handler) Register() http.HandlerFunc {
 			if errors.Is(err, user.ErrExists) {
 				handleHTTPError(w, err, http.StatusConflict)
 			} else {
-				handleHTTPError(w, err, http.StatusInternalServerError)
+				handleHTTPError(w, err, h.getErrorCode(err))
 			}
 			return
 		}

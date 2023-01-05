@@ -16,6 +16,10 @@ var (
 var secret = []byte("f91j&famF*kf_PgjJ1Yfv$_0f1A8BB#2")
 
 func EncryptData(data []byte) ([]byte, error) {
+	if len(data) == 0 {
+		return nil, ErrDataLength
+	}
+
 	c, err := aes.NewCipher(secret)
 	if err != nil {
 		return nil, err
@@ -51,5 +55,9 @@ func DecryptData(data []byte) ([]byte, error) {
 	}
 
 	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
-	return gcm.Open(nil, nonce, ciphertext, nil)
+	res, err := gcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return nil, ErrDecryption
+	}
+	return res, nil
 }
