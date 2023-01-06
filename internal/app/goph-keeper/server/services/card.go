@@ -15,10 +15,13 @@ type CardService struct {
 
 var ErrCardNotFound = errors.New("requested card data not found")
 
+// NewCardService returns an instance of the BinaryService with pre-defined card microservice.
 func NewCardService(dataMS data.Service) *CardService {
 	return &CardService{cardMS: card.NewService(dataMS)}
 }
 
+// DeleteCard removes the stored data with the unique ID.
+// The method removes the data of the specified user only.
 func (s *CardService) DeleteCard(ctx context.Context, uid, id string) error {
 	if uid == "" || id == "" {
 		return ErrBadArguments
@@ -30,6 +33,7 @@ func (s *CardService) DeleteCard(ctx context.Context, uid, id string) error {
 	return err
 }
 
+// GetAllCards returns all the user's stored cards.
 func (s *CardService) GetAllCards(ctx context.Context, uid string) ([]models.CardResponse, error) {
 	if uid == "" {
 		return nil, ErrBadArguments
@@ -49,6 +53,8 @@ func (s *CardService) GetAllCards(ctx context.Context, uid string) ([]models.Car
 	return cards, nil
 }
 
+// GetCardByID returns the stored data by the unique ID.
+// The method returns the data of the specified user only.
 func (s *CardService) GetCardByID(ctx context.Context, uid, id string) (models.CardResponse, error) {
 	if uid == "" || id == "" {
 		return models.CardResponse{}, ErrBadArguments
@@ -63,6 +69,7 @@ func (s *CardService) GetCardByID(ctx context.Context, uid, id string) (models.C
 	return s.getResponseFromModel(res), nil
 }
 
+// StoreCard stores the original card via the associated data microservice.
 func (s *CardService) StoreCard(ctx context.Context, uid string, card models.CardRequest) (string, error) {
 	return s.cardMS.StoreCard(ctx, s.getModelFromRequest(uid, card))
 }

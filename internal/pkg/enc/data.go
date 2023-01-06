@@ -15,6 +15,7 @@ var (
 
 var secret = []byte("f91j&famF*kf_PgjJ1Yfv$_0f1A8BB#2")
 
+// EncryptData transforms an original slice of bytes into an encoded one.
 func EncryptData(data []byte) ([]byte, error) {
 	if len(data) == 0 {
 		return nil, ErrDataLength
@@ -38,6 +39,7 @@ func EncryptData(data []byte) ([]byte, error) {
 	return gcm.Seal(nonce, nonce, data, nil), nil
 }
 
+// DecryptData transforms an encrypted slice of bytes into an original one.
 func DecryptData(data []byte) ([]byte, error) {
 	c, err := aes.NewCipher(secret)
 	if err != nil {

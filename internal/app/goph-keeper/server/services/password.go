@@ -16,10 +16,13 @@ type PasswordService struct {
 	passwordMS password.Service
 }
 
+// NewPasswordService returns an instance of the BinaryService with pre-defined password microservice.
 func NewPasswordService(dataMS data.Service) *PasswordService {
 	return &PasswordService{passwordMS: password.NewService(dataMS)}
 }
 
+// DeletePassword removes the stored data with the unique ID.
+// The method removes the data of the specified user only.
 func (s *PasswordService) DeletePassword(ctx context.Context, uid, id string) error {
 	if uid == "" || id == "" {
 		return ErrBadArguments
@@ -31,6 +34,7 @@ func (s *PasswordService) DeletePassword(ctx context.Context, uid, id string) er
 	return err
 }
 
+// GetAllPasswords returns all the user's stored passwords.
 func (s *PasswordService) GetAllPasswords(ctx context.Context, uid string) ([]models.PasswordResponse, error) {
 	if uid == "" {
 		return nil, ErrBadArguments
@@ -50,6 +54,8 @@ func (s *PasswordService) GetAllPasswords(ctx context.Context, uid string) ([]mo
 	return passwords, nil
 }
 
+// GetPasswordByID returns the stored data by the unique ID.
+// The method returns the data of the specified user only.
 func (s *PasswordService) GetPasswordByID(ctx context.Context, uid, id string) (models.PasswordResponse, error) {
 	if uid == "" || id == "" {
 		return models.PasswordResponse{}, ErrBadArguments
@@ -64,6 +70,7 @@ func (s *PasswordService) GetPasswordByID(ctx context.Context, uid, id string) (
 	return s.getResponseFromModel(res), nil
 }
 
+// StorePassword stores the original password via the associated data microservice.
 func (s *PasswordService) StorePassword(ctx context.Context, uid string, req models.PasswordRequest) (string, error) {
 	return s.passwordMS.StorePassword(ctx, s.getModelFromRequest(uid, req))
 }

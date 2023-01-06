@@ -8,6 +8,7 @@ import (
 
 var ErrPasswordLength = errors.New("enc: the password is missing")
 
+// HashPassword encodes an original password string.
 func HashPassword(s string) (string, error) {
 	if len(s) == 0 {
 		return "", ErrPasswordLength
@@ -19,9 +20,8 @@ func HashPassword(s string) (string, error) {
 	return string(hash), nil
 }
 
+// VerifyPassword compares an encrypted password with a plain one.
 func VerifyPassword(pwd, hash string) bool {
-	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(pwd)); err != nil {
-		return false
-	}
-	return true
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(pwd))
+	return err == nil
 }

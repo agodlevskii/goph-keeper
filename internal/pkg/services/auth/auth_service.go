@@ -46,7 +46,7 @@ func (s Service) Authorize(token string) (string, error) {
 // Login establishes the user session based on the client ID and user credential.
 // If the client ID is passed, the method looks for the associated stored session.
 // If the client ID is empty, or the associated token is not found or expired, the method performs login by credential.
-// If the credential doesn't match, or another unknown error has occured, the method returns an error,
+// If the credential doesn't match, or another unknown error has occurred, the method returns an error.
 func (s Service) Login(ctx context.Context, cid string, req Payload) (string, string, error) {
 	if cid != "" {
 		t, err := s.sessionService.RestoreSession(ctx, cid)

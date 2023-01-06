@@ -18,10 +18,13 @@ var (
 	ErrBinaryNotFound = errors.New("requested binary data not found")
 )
 
+// NewBinaryService returns an instance of the BinaryService with pre-defined binary microservice.
 func NewBinaryService(dataMS data.Service) *BinaryService {
 	return &BinaryService{binaryMS: binary.NewService(dataMS)}
 }
 
+// DeleteBinary removes the stored data with the unique ID.
+// The method removes the data of the specified user only.
 func (s *BinaryService) DeleteBinary(ctx context.Context, uid, id string) error {
 	if uid == "" || id == "" {
 		return ErrBadArguments
@@ -33,6 +36,7 @@ func (s *BinaryService) DeleteBinary(ctx context.Context, uid, id string) error 
 	return err
 }
 
+// GetAllBinaries returns all the user's stored binaries.
 func (s *BinaryService) GetAllBinaries(ctx context.Context, uid string) ([]models.BinaryResponse, error) {
 	if uid == "" {
 		return nil, ErrBadArguments
@@ -52,6 +56,8 @@ func (s *BinaryService) GetAllBinaries(ctx context.Context, uid string) ([]model
 	return binaries, nil
 }
 
+// GetBinaryByID returns the stored data by the unique ID.
+// The method returns the data of the specified user only.
 func (s *BinaryService) GetBinaryByID(ctx context.Context, uid, id string) (models.BinaryResponse, error) {
 	if uid == "" || id == "" {
 		return models.BinaryResponse{}, ErrBadArguments
@@ -66,6 +72,7 @@ func (s *BinaryService) GetBinaryByID(ctx context.Context, uid, id string) (mode
 	return s.getResponseFromModel(resp), nil
 }
 
+// StoreBinary stores the original binary via the associated data microservice.
 func (s *BinaryService) StoreBinary(ctx context.Context, uid string, binary models.BinaryRequest) (string, error) {
 	if uid == "" || binary.Name == "" || binary.Data == nil {
 		return "", ErrBadArguments
