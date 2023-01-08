@@ -3,4 +3,8 @@ api:
   port: 8081
   route: "/api/v1"
   secure: false
-  
+
+cert:
+  ca: "/Users/andyskin/workdir/GitHub/goph-keeper/cert/ca.crt"
+  cert: "/Users/andyskin/workdir/GitHub/goph-keeper/cert/cli.crt"
+  key: "/Users/andyskin/workdir/GitHub/goph-keeper/cert/cli.key"

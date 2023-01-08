@@ -2,3 +2,15 @@ server:
   host: "localhost"
   port: 8081
   secure: false
+
+database:
+  host: "localhost"
+  port: 5432
+  name: "goph_keeper"
+  user: "yand"
+  password: "yand"
+
+cert:
+  ca: "/Users/andyskin/workdir/GitHub/goph-keeper/cert/ca.crt"
+  cert: "/Users/andyskin/workdir/GitHub/goph-keeper/cert/server.crt"
+  key: "/Users/andyskin/workdir/GitHub/goph-keeper/cert/server.key"

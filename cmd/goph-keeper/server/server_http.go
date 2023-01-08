@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"net/http"
@@ -16,7 +17,6 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/handlers"
-	"github.com/agodlevskii/goph-keeper/internal/pkg/cert"
 )
 
 var (
@@ -28,12 +28,14 @@ type ServerConfig interface {
 	GetRepoURL() string
 	GetServerAddress() string
 	IsServerSecure() bool
+	GetCACertPool() (*x509.CertPool, error)
+	GetCertificatePaths() []string
 }
 
 func main() {
 	printCompilationInfo()
-	sCfg := config.New(config.WithEnv(), config.WithFile())
-	s, err := getServer(sCfg)
+	cfg := config.New(config.WithEnv(), config.WithFile())
+	s, err := getServer(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -47,41 +49,38 @@ func main() {
 		close(idleConnectionsClosed)
 	}()
 
-	go startServer(s, sCfg)
+	go startServer(s, cfg)
 	<-idleConnectionsClosed
 }
 
-func getServer(sCfg ServerConfig) (*http.Server, error) {
-	h, err := handlers.NewHandler(sCfg.GetRepoURL())
+func getServer(cfg ServerConfig) (*http.Server, error) {
+	h, err := handlers.NewHandler(cfg.GetRepoURL())
 	if err != nil {
 		return nil, err
 	}
 
 	s := &http.Server{
-		Addr:              sCfg.GetServerAddress(),
+		Addr:              cfg.GetServerAddress(),
 		Handler:           h,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
-	if sCfg.IsServerSecure() {
-		tlsCfg, tErr := getTLSConfig()
+	if cfg.IsServerSecure() {
+		tlcfg, tErr := getTLSConfig(cfg)
 		if tErr != nil {
 			return nil, tErr
 		}
-		s.TLSConfig = tlsCfg
+		s.TLSConfig = tlcfg
 	}
 
 	return s, nil
 }
 
-func startServer(s *http.Server, sCfg ServerConfig) {
-	cPaths, err := cert.GetCertificatePaths()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if sCfg.IsServerSecure() {
-		err = s.ListenAndServeTLS(cPaths.Server.Cert, cPaths.Server.Key)
+func startServer(s *http.Server, cfg ServerConfig) {
+	var err error
+	if cfg.IsServerSecure() {
+		paths := cfg.GetCertificatePaths()
+		err = s.ListenAndServeTLS(paths[0], paths[1])
 	} else {
 		err = s.ListenAndServe()
 	}
@@ -100,8 +99,8 @@ func stopServer(s *http.Server) {
 	}
 }
 
-func getTLSConfig() (*tls.Config, error) {
-	caCertPool, err := cert.GetCertificatePool()
+func getTLSConfig(cfg ServerConfig) (*tls.Config, error) {
+	caCertPool, err := cfg.GetCACertPool()
 	if err != nil {
 		return nil, err
 	}

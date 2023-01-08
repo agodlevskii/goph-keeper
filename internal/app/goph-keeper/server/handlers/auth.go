@@ -6,8 +6,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/auth"
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/server/services/user"
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/models"
+
+	"github.com/agodlevskii/goph-keeper/internal/pkg/services/user"
 )
 
 type UserID string
@@ -37,7 +38,7 @@ func (h Handler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cid := getClientID(r)
 
-		var req auth.Request
+		var req models.UserRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			handleHTTPError(w, err, http.StatusBadRequest)
 			return
@@ -45,11 +46,7 @@ func (h Handler) Login() http.HandlerFunc {
 
 		token, cid, err := h.authService.Login(r.Context(), cid, req)
 		if err != nil {
-			if errors.Is(err, auth.ErrWrongCredential) {
-				handleHTTPError(w, err, http.StatusUnauthorized)
-			} else {
-				handleHTTPError(w, err, http.StatusInternalServerError)
-			}
+			handleHTTPError(w, err, h.getErrorCode(err))
 			return
 		}
 
@@ -67,7 +64,7 @@ func (h Handler) Logout() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cid := getClientID(r)
 		if loggedOut, err := h.authService.Logout(r.Context(), cid); !loggedOut || err != nil {
-			handleHTTPError(w, err, http.StatusInternalServerError)
+			handleHTTPError(w, err, h.getErrorCode(err))
 			return
 		}
 
@@ -78,17 +75,17 @@ func (h Handler) Logout() http.HandlerFunc {
 
 func (h Handler) Register() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var u auth.Request
+		var u models.UserRequest
 		if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 			handleHTTPError(w, err, http.StatusBadRequest)
 			return
 		}
 
 		if err := h.authService.Register(r.Context(), u); err != nil {
-			if errors.Is(err, user.ErrUserExists) {
+			if errors.Is(err, user.ErrExists) {
 				handleHTTPError(w, err, http.StatusConflict)
 			} else {
-				handleHTTPError(w, err, http.StatusInternalServerError)
+				handleHTTPError(w, err, h.getErrorCode(err))
 			}
 			return
 		}
