@@ -32,16 +32,6 @@ const (
 var ErrUnauthorized = errors.New("incorrect username or password")
 
 func NewHTTPClient(cfg *config.ClientConfig) (HTTPKeeperClient, error) {
-	caCertPool, err := cfg.GetCACertPool()
-	if err != nil {
-		return HTTPKeeperClient{}, err
-	}
-
-	c, err := cfg.GetCertificate()
-	if err != nil {
-		return HTTPKeeperClient{}, err
-	}
-
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return HTTPKeeperClient{}, err
@@ -52,19 +42,24 @@ func NewHTTPClient(cfg *config.ClientConfig) (HTTPKeeperClient, error) {
 		return HTTPKeeperClient{}, err
 	}
 
-	return HTTPKeeperClient{
-		http: &http.Client{
-			Jar: jar,
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{
-					RootCAs:      caCertPool,
-					Certificates: []tls.Certificate{c},
-					MinVersion:   tls.VersionTLS12,
-				},
-			},
-		},
+	client := HTTPKeeperClient{
+		http:   &http.Client{Jar: jar},
 		apiURL: uri,
-	}, nil
+	}
+
+	caCertPool, caErr := cfg.GetCACertPool()
+	c, cErr := cfg.GetCertificate()
+	if caErr == nil && cErr == nil {
+		client.http.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs:      caCertPool,
+				Certificates: []tls.Certificate{c},
+				MinVersion:   tls.VersionTLS12,
+			},
+		}
+	}
+
+	return client, nil
 }
 
 func (c HTTPKeeperClient) Login(ctx context.Context, user, password string) error {
@@ -316,7 +311,7 @@ func (c HTTPKeeperClient) makeRequest(ctx context.Context, method, url string, d
 	}
 
 	if res.StatusCode != 200 {
-		return res, errors.New("response code")
+		return res, errors.New(res.Status)
 	}
 	return res, err
 }
