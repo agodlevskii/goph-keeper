@@ -30,18 +30,21 @@ func TestGetCertificatePool(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fName := generateCertFileName(t, tt.fName)
+			var f *os.File
+			var err error
 			if fName != "" {
-				f, err := os.Create(fName)
-				if err != nil {
+				if f, err = os.Create(fName); err != nil {
 					t.Fatal(err)
 				}
-				defer f.Close()
 			}
 			got, err := GetCertificatePool(fName)
 			assert.Equal(t, tt.wantCert, got != nil)
 			assert.Equal(t, tt.wantErr, err != nil)
 
 			if fName != "" {
+				if err = f.Close(); err != nil {
+					t.Fatal(err)
+				}
 				if err = os.Remove(fName); err != nil {
 					t.Fatal(err)
 				}
