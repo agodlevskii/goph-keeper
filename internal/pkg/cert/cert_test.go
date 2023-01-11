@@ -31,9 +31,11 @@ func TestGetCertificatePool(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fName := generateCertFileName(t, tt.fName)
 			if fName != "" {
-				if _, err := os.Create(fName); err != nil {
+				f, err := os.Create(fName)
+				if err != nil {
 					t.Fatal(err)
 				}
+				defer f.Close()
 			}
 			got, err := GetCertificatePool(fName)
 			assert.Equal(t, tt.wantCert, got != nil)
