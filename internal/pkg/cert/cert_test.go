@@ -14,7 +14,6 @@ func TestGetCertificatePool(t *testing.T) {
 	tests := []struct {
 		name     string
 		fName    string
-		path     string
 		wantCert bool
 		wantErr  bool
 	}{
@@ -25,7 +24,6 @@ func TestGetCertificatePool(t *testing.T) {
 		{
 			name:     "Correct path",
 			fName:    "test.csv",
-			path:     "test.csv",
 			wantCert: true,
 		},
 	}
@@ -37,7 +35,7 @@ func TestGetCertificatePool(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			got, err := GetCertificatePool(tt.path)
+			got, err := GetCertificatePool(fName)
 			assert.Equal(t, tt.wantCert, got != nil)
 			assert.Equal(t, tt.wantErr, err != nil)
 
