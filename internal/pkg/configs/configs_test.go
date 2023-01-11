@@ -106,8 +106,9 @@ func TestUpdateConfigFromFile(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fPath := generateConfigFileName(t, tt.args.fPath)
+			var f *os.File
 			if fPath != "" {
-				setupFileConfig(t, fPath, tt.args.fCfg)
+				f = setupFileConfig(t, fPath, tt.args.fCfg)
 			}
 
 			err := UpdateConfigFromFile(tt.args.cfg, tt.args.fCfg, fPath)
@@ -115,13 +116,16 @@ func TestUpdateConfigFromFile(t *testing.T) {
 			assert.Equal(t, tt.wantErr, err != nil)
 
 			if fPath != "" {
+				if err = f.Close(); err != nil {
+					t.Fatal(err)
+				}
 				cleanFileConfig(t, fPath)
 			}
 		})
 	}
 }
 
-func setupFileConfig(t *testing.T, filename string, cfg *testCfg) {
+func setupFileConfig(t *testing.T, filename string, cfg *testCfg) *os.File {
 	path, err := getConfigsDirPath()
 	if err != nil {
 		t.Fatal(err)
@@ -133,6 +137,7 @@ func setupFileConfig(t *testing.T, filename string, cfg *testCfg) {
 	if err = json.NewEncoder(f).Encode(cfg); err != nil {
 		t.Fatal(err)
 	}
+	return f
 }
 
 func cleanFileConfig(t *testing.T, filename string) {
