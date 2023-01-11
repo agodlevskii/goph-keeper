@@ -2,9 +2,12 @@ package configs
 
 import (
 	"encoding/json"
+	"math/rand"
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -102,16 +105,17 @@ func TestUpdateConfigFromFile(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.args.fPath != "" {
-				setupFileConfig(t, tt.args.fPath, tt.args.fCfg)
+			fPath := generateConfigFileName(tt.args.fPath)
+			if fPath != "" {
+				setupFileConfig(t, fPath, tt.args.fCfg)
 			}
 
-			err := UpdateConfigFromFile(tt.args.cfg, tt.args.fCfg, tt.args.fPath)
+			err := UpdateConfigFromFile(tt.args.cfg, tt.args.fCfg, fPath)
 			assert.Equal(t, tt.want, tt.args.cfg)
 			assert.Equal(t, tt.wantErr, err != nil)
 
-			if tt.args.fPath != "" {
-				cleanFileConfig(t, tt.args.fPath)
+			if fPath != "" {
+				cleanFileConfig(t, fPath)
 			}
 		})
 	}
@@ -139,4 +143,12 @@ func cleanFileConfig(t *testing.T, filename string) {
 	if err = os.Remove(filepath.Join(path, filename)); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func generateConfigFileName(fName string) string {
+	if fName == "" {
+		return ""
+	}
+	r := rand.New(rand.NewSource(time.Now().Unix()))
+	return strconv.Itoa(r.Int()) + fName
 }
