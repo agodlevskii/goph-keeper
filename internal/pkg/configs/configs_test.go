@@ -1,13 +1,13 @@
 package configs
 
 import (
+	"crypto/rand"
 	"encoding/json"
-	"math/rand"
+	"math/big"
 	"os"
 	"path/filepath"
 	"strconv"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -105,7 +105,7 @@ func TestUpdateConfigFromFile(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fPath := generateConfigFileName(tt.args.fPath)
+			fPath := generateConfigFileName(t, tt.args.fPath)
 			if fPath != "" {
 				setupFileConfig(t, fPath, tt.args.fCfg)
 			}
@@ -145,10 +145,14 @@ func cleanFileConfig(t *testing.T, filename string) {
 	}
 }
 
-func generateConfigFileName(fName string) string {
+func generateConfigFileName(t *testing.T, fName string) string {
 	if fName == "" {
 		return ""
 	}
-	r := rand.New(rand.NewSource(time.Now().Unix()))
-	return strconv.Itoa(r.Int()) + fName
+
+	r, err := rand.Int(rand.Reader, big.NewInt(100))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return strconv.Itoa(int(r.Int64())) + fName
 }
