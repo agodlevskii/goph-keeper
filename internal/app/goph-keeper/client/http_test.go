@@ -2,8 +2,11 @@ package client
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
+	"math/big"
 	"net/http"
+	"strconv"
 	"testing"
 	"time"
 
@@ -422,10 +425,13 @@ func TestHTTPKeeperClient_Register(t *testing.T) {
 }
 
 func init() {
-	go startServer()
+	port, err := generateRandomPort()
+	if err != nil {
+		log.Fatal(err)
+	}
+	go startServer(port)
 
-	var err error
-	c, err = initTestClient()
+	c, err = initTestClient(port)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -438,14 +444,14 @@ func init() {
 	}
 }
 
-func startServer() {
+func startServer(port int) {
 	h, err := handlers.NewHandler("")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	s = http.Server{
-		Addr:              ":9091",
+		Addr:              ":" + strconv.Itoa(port),
 		Handler:           h,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
@@ -454,10 +460,18 @@ func startServer() {
 	}
 }
 
-func initTestClient() (HTTPKeeperClient, error) {
+func initTestClient(port int) (HTTPKeeperClient, error) {
 	cfg := config.New()
 	cfg.API.Host = "localhost"
-	cfg.API.Port = 9091
+	cfg.API.Port = port
 	cfg.API.Route = "/api/v1"
 	return NewHTTPClient(cfg)
+}
+
+func generateRandomPort() (int, error) {
+	r, err := rand.Int(rand.Reader, big.NewInt(9999))
+	if err != nil {
+		return 0, err
+	}
+	return int(r.Int64()), nil
 }
