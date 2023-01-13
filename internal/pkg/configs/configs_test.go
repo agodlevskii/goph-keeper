@@ -1,9 +1,12 @@
 package configs
 
 import (
+	"crypto/rand"
 	"encoding/json"
+	"math/big"
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -102,22 +105,27 @@ func TestUpdateConfigFromFile(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.args.fPath != "" {
-				setupFileConfig(t, tt.args.fPath, tt.args.fCfg)
+			fPath := generateConfigFileName(t, tt.args.fPath)
+			var f *os.File
+			if fPath != "" {
+				f = setupFileConfig(t, fPath, tt.args.fCfg)
 			}
 
-			err := UpdateConfigFromFile(tt.args.cfg, tt.args.fCfg, tt.args.fPath)
+			err := UpdateConfigFromFile(tt.args.cfg, tt.args.fCfg, fPath)
 			assert.Equal(t, tt.want, tt.args.cfg)
 			assert.Equal(t, tt.wantErr, err != nil)
 
-			if tt.args.fPath != "" {
-				cleanFileConfig(t, tt.args.fPath)
+			if fPath != "" {
+				if err = f.Close(); err != nil {
+					t.Fatal(err)
+				}
+				cleanFileConfig(t, fPath)
 			}
 		})
 	}
 }
 
-func setupFileConfig(t *testing.T, filename string, cfg *testCfg) {
+func setupFileConfig(t *testing.T, filename string, cfg *testCfg) *os.File {
 	path, err := getConfigsDirPath()
 	if err != nil {
 		t.Fatal(err)
@@ -129,6 +137,7 @@ func setupFileConfig(t *testing.T, filename string, cfg *testCfg) {
 	if err = json.NewEncoder(f).Encode(cfg); err != nil {
 		t.Fatal(err)
 	}
+	return f
 }
 
 func cleanFileConfig(t *testing.T, filename string) {
@@ -139,4 +148,16 @@ func cleanFileConfig(t *testing.T, filename string) {
 	if err = os.Remove(filepath.Join(path, filename)); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func generateConfigFileName(t *testing.T, fName string) string {
+	if fName == "" {
+		return ""
+	}
+
+	r, err := rand.Int(rand.Reader, big.NewInt(100))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return strconv.Itoa(int(r.Int64())) + fName
 }

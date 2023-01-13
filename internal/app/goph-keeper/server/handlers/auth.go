@@ -6,8 +6,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/models"
+	log "github.com/sirupsen/logrus"
 
+	"github.com/agodlevskii/goph-keeper/internal/app/goph-keeper/models"
 	"github.com/agodlevskii/goph-keeper/internal/pkg/services/user"
 )
 
@@ -37,6 +38,7 @@ func (h Handler) Auth(next http.Handler) http.Handler {
 func (h Handler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cid := getClientID(r)
+		log.Info(cid)
 
 		var req models.UserRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

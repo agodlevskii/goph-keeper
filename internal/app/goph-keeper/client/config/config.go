@@ -52,6 +52,9 @@ func WithFile() func(cfg *ClientConfig) {
 }
 
 func (c *ClientConfig) GetAPIAddress() string {
+	if c.API.Host == "" && c.API.Port == 0 {
+		return ""
+	}
 	protocol := "http"
 	if c.API.Secure {
 		protocol = "https"
